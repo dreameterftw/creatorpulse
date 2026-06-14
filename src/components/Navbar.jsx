@@ -33,10 +33,7 @@ export default function Navbar() {
             {["Products", "Resources", "Pricing"].map((item) => (
               <span
                 key={item}
-                className="text-[13px] font-medium cursor-pointer transition-colors"
-                style={{ color: "rgba(255, 255, 255, 0.55)" }}
-                onMouseEnter={(e) => (e.target.style.color = "#ffffff")}
-                onMouseLeave={(e) => (e.target.style.color = "rgba(255, 255, 255, 0.55)")}
+                className="nav-gradient-text text-[13px] font-medium cursor-pointer"
               >
                 {item}
               </span>
@@ -77,23 +74,22 @@ export default function Navbar() {
         </div>
       ) : (
         // Public state layout
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-7">
           <button
             onClick={() => navigate("/auth")}
-            className="text-[13px] font-medium transition-colors"
-            style={{ color: "rgba(255, 255, 255, 0.6)" }}
-            onMouseEnter={(e) => (e.target.style.color = "#ffffff")}
-            onMouseLeave={(e) => (e.target.style.color = "rgba(255, 255, 255, 0.6)")}
+            className="nav-gradient-text text-[13px] font-medium"
           >
             Login
           </button>
           <button
-            onClick={() => navigate("/dashboard")}
-            className="btn-primary text-[12px]"
-            style={{ background: "#ffffff", color: "#010120", fontWeight: 500 }}
-          >
-            Dashboard
-          </button>
+              onClick={() => navigate("/dashboard")}
+              className="h-9 px-6 text-[12px] font-medium rounded-md border text-white transition-colors"
+              style={{ borderColor: "rgba(255,255,255,0.2)", background: "transparent" }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.5)"}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"}
+            >
+              Dashboard
+            </button>
         </div>
       )}
     </nav>

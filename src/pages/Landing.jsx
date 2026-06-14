@@ -61,9 +61,14 @@ export default function Landing() {
             />
             <button
               type="submit"
-              className="btn-primary rounded-md py-2 px-5 text-[13px] font-semibold text-white flex items-center gap-1 bg-gradient-to-r from-[#00f2fe] to-[#ef2cc1] hover:shadow-lg transition-all"
+              className="cta-glow-button h-11 min-w-[164px] text-[13px] font-semibold"
             >
-              Get Started <ArrowRight size={13} />
+              <span>
+                Get Started <ArrowRight size={13} />
+              </span>
+              <div className="hoverEffect" aria-hidden="true">
+                <div />
+              </div>
             </button>
           </form>
 
@@ -269,11 +274,11 @@ export default function Landing() {
             {/* Box 1 (Left): Stat block */}
             <div className="lg:col-span-5 card p-8 border border-white/5 bg-[#141332] flex flex-col justify-between rounded-xl">
               <div>
-                <h3 className="text-6xl font-display font-extrabold text-[#00f2fe]">85k+</h3>
-                <p className="text-base font-semibold mt-4">Creators already analyzing rates on CreatorPulse</p>
+                <h3 className="text-5xl font-display font-extrabold text-[#00f2fe]">Day 1</h3>
+                <p className="text-base font-semibold mt-4">We're just getting started — and we want you here from the beginning.</p>
               </div>
               <p className="text-xs text-[#8a89a0] mt-8 leading-relaxed">
-                From nano-influencers to macro-celebrities, creators trust our algorithms to evaluate fair sponsorship compensation.
+                CreatorPulse is built by creators who got tired of guessing what to charge. We're not a big corp — we're a small team that genuinely cares about helping you earn what you deserve.
               </p>
             </div>
 
@@ -353,18 +358,19 @@ export default function Landing() {
           </h2>
 
           {/* Metrics */}
+          {/* Real values */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <p className="text-5xl font-display font-extrabold text-[#0a0916]">24%</p>
-              <p className="text-sm font-semibold text-[#ef2cc1] mt-2">Average Post Rate Increase</p>
+              <p className="text-5xl font-display font-extrabold text-[#0a0916]">Free</p>
+              <p className="text-sm font-semibold text-[#ef2cc1] mt-2">No credit card, no catch</p>
             </div>
             <div>
-              <p className="text-5xl font-display font-extrabold text-[#0a0916]">₹18,000</p>
-              <p className="text-sm font-semibold text-[#00f2fe] mt-2">Average Verified Deal Size</p>
+              <p className="text-5xl font-display font-extrabold text-[#0a0916]">5 tools</p>
+              <p className="text-sm font-semibold text-[#00f2fe] mt-2">All AI-powered, all in one place</p>
             </div>
             <div>
-              <p className="text-5xl font-display font-extrabold text-[#0a0916]">10x+</p>
-              <p className="text-sm font-semibold text-[#fc4c02] mt-2">ROI on Creator Marketing</p>
+              <p className="text-5xl font-display font-extrabold text-[#0a0916]">Yours</p>
+              <p className="text-sm font-semibold text-[#fc4c02] mt-2">Your data stays yours, always</p>
             </div>
           </div>
         </div>
@@ -386,13 +392,16 @@ export default function Landing() {
             <div className="flex flex-wrap gap-4 flex-shrink-0">
               <button
                 onClick={() => navigate("/auth")}
-                className="btn-primary rounded-md py-3 px-6 text-[13px] font-semibold text-white bg-gradient-to-r from-[#00f2fe] to-[#ef2cc1]"
+                className="cta-glow-button h-11 min-w-[164px] text-[13px] font-semibold"
               >
-                Get Started Now
+                <span>Get Started Now</span>
+                <div className="hoverEffect" aria-hidden="true">
+                  <div />
+                </div>
               </button>
               <button
                 onClick={() => navigate("/auth")}
-                className="btn-secondary rounded-md py-3 px-6 text-[13px] font-semibold text-[#8a89a0] border border-white/10 hover:text-white"
+                className="btn-secondary hover-glow-border-button rounded-md py-3 px-6 text-[13px] font-semibold text-[#8a89a0] border border-white/10 hover:text-white"
               >
                 Learn More →
               </button>
