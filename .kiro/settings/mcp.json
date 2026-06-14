@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "cloudflare": {
+      "url": "https://mcp.cloudflare.com/mcp",
+      "disabled": false,
+      "autoApprove": []
+    },
+    "cloudflare-docs": {
+      "url": "https://docs.mcp.cloudflare.com/mcp",
+      "disabled": false,
+      "autoApprove": []
+    },
+    "cloudflare-bindings": {
+      "url": "https://bindings.mcp.cloudflare.com/mcp",
+      "disabled": false,
+      "autoApprove": []
+    },
+    "cloudflare-builds": {
+      "url": "https://builds.mcp.cloudflare.com/mcp",
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

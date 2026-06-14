@@ -1,0 +1,79 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+
+      // ── READ ──
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // ── CREATE ── (first write, right after signup)
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.profileComplete == false
+        && request.resource.data.keys().hasOnly(['name', 'email', 'profileComplete', 'createdAt']);
+
+      // ── UPDATE ── (onboarding completion + profile edits)
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && validUserUpdate();
+
+      // ── DELETE ── (account deletion flow)
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── Usage tracking subcollection ──
+    // Written server-side only (Worker via KV). Never by the client.
+    match /users/{userId}/usage/{date} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    // Default-deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+function validUserUpdate() {
+  let data = request.resource.data;
+  let existing = resource.data;
+
+  return
+    // Immutable fields — can never be changed after creation
+    data.email == existing.email &&
+    (!('createdAt' in existing) || data.createdAt == existing.createdAt) &&
+
+    // name: required, non-empty string, max 100 chars
+    data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+
+    // Optional string fields — if present, must be strings within length
+    (!('platform' in data) || (data.platform is string && data.platform.size() <= 50)) &&
+    (!('niche' in data) || (data.niche is string && data.niche.size() <= 50)) &&
+    (!('contentFrequency' in data) || (data.contentFrequency is string && data.contentFrequency.size() <= 50)) &&
+    (!('audienceLocation' in data) || (data.audienceLocation is string && data.audienceLocation.size() <= 50)) &&
+
+    // Numeric bounds — protects AI prompts and PDF rendering from garbage values
+    (!('followers' in data) ||
+      (data.followers is number && data.followers >= 0 && data.followers <= 1000000000)) &&
+
+    (!('engagementRate' in data) ||
+      (data.engagementRate is number && data.engagementRate >= 0 && data.engagementRate <= 100)) &&
+
+    (!('monthlyIncome' in data) ||
+      (data.monthlyIncome is number && data.monthlyIncome >= 0 && data.monthlyIncome <= 100000000)) &&
+
+    // dailyAiCalls — client can write this (dev fallback rate limit), cap at 50
+    (!('dailyAiCalls' in data) ||
+      (data.dailyAiCalls is number && data.dailyAiCalls >= 0 && data.dailyAiCalls <= 50)) &&
+
+    // incomeStreams — list, max 10 items
+    (!('incomeStreams' in data) ||
+      (data.incomeStreams is list && data.incomeStreams.size() <= 10)) &&
+
+    // profileComplete must always be a bool
+    data.profileComplete is bool;
+}

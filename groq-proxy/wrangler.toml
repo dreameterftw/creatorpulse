@@ -1,0 +1,11 @@
+name = "groq-proxy"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://creatorpulse-gg.web.app"
+DAILY_LIMIT = "30"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "18b8c3b1ff004e1ea56ee522b0762342"
