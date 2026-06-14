@@ -5,7 +5,7 @@
 Built for Indian content creators who are tired of guessing what to charge, missing monetization opportunities, or sending generic pitch emails that go unanswered.
 
 ---
-
+ 
 ## 👥 Team
 
 | Name | GitHub |
