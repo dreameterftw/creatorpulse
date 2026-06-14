@@ -11,7 +11,7 @@ Built for Indian content creators who are tired of guessing what to charge, miss
 | Name | GitHub |
 |------|--------|
 | Aryan Rane | [@dreameterftw](https://github.com/dreameterftw) |
-| Manvi Gupta | — |
+| Manvi Gupta | [@manviofficial1212-gif](https://github.com/manviofficial1212-gif) |
 
 ---
 
