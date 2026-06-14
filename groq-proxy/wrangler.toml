@@ -1,5 +1,5 @@
 name = "groq-proxy"
-main = "src/index.js"
+main = "src/index.standalone.js"
 compatibility_date = "2026-06-01"
 
 [vars]
