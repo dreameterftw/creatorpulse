@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "../firebase/config"
 import { useAuth } from "../context/AuthContext"
+import { useCreator } from "../context/CreatorContext"
 import { useGapAnalyzer } from "../hooks/useGapAnalyzer"
 import AppShell from "../components/AppShell"
 import PageHeader from "../components/PageHeader"
@@ -59,17 +60,14 @@ function GapGlow({ intensity = 0 }) {
 
 export default function GapRadar() {
   const { user } = useAuth()
+  const { profile } = useCreator()
   const { result, loading, error, usage, analyzeGaps } = useGapAnalyzer()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    const fetchAndAnalyze = async () => {
-      const snap = await getDoc(doc(db, "users", user.uid))
-      if (snap.exists()) analyzeGaps(snap.data())
-    }
-    fetchAndAnalyze()
-  }, [])
+    if (profile) analyzeGaps(profile)
+  }, [profile])
 
   const streams = result?.streams || [
     { label: "Brand Deals", score: 85, monthlyPotential: 45000, currentlyUsing: true },
@@ -99,9 +97,8 @@ export default function GapRadar() {
     return { x: 150 + 105 * Math.cos(angle), y: 150 + 105 * Math.sin(angle) }
   }
 
-  const refresh = async () => {
-    const snap = await getDoc(doc(db, "users", user.uid))
-    if (snap.exists()) analyzeGaps(snap.data())
+  const refresh = () => {
+    if (profile) analyzeGaps(profile)
   }
 
   return (

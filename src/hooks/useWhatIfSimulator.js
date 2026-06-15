@@ -1,27 +1,35 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
+import { saveToHistory } from "../utils/history"
+import { useCreator } from "../context/CreatorContext"
 
 export function useWhatIfSimulator() {
-  const [result, setResult] = useState(null)
+  const [result,  setResult]  = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [usage, setUsage] = useState(null)
+  const [error,   setError]   = useState(null)
+  const [usage,   setUsage]   = useState(null)
+
+  const { buildCrossContext, updateSessionInsight } = useCreator()
 
   const simulate = async (currentProfile, simulatedProfile) => {
     setLoading(true)
     setError(null)
+
+    const crossContext = buildCrossContext()
 
     const systemPrompt = `You are an expert creator economy analyst. You compare a creator's current profile against a hypothetical "what-if" version and project how their monetization potential would change. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
     const userPrompt = `Compare these two creator profiles and project the monetization impact:
 
 CURRENT PROFILE:
-Platform: ${currentProfile.platform}
-Niche: ${currentProfile.niche}
+Platform: ${currentProfile.platforms?.join(", ") || currentProfile.platform}
+Niche: ${currentProfile.niches?.join(", ") || currentProfile.niche}
 Followers: ${currentProfile.followers}
 Engagement Rate: ${currentProfile.engagementRate}%
 Content Frequency: ${currentProfile.contentFrequency}
 Monthly Income: ₹${currentProfile.monthlyIncome}
+Audience Location: ${currentProfile.audienceLocation || "India"}
+Income Streams: ${currentProfile.incomeStreams?.join(", ") || "not specified"}${crossContext}
 
 SIMULATED "WHAT-IF" PROFILE:
 Platform: ${simulatedProfile.platform}
@@ -63,12 +71,20 @@ Return a JSON object with this exact structure:
     try {
       const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "what_if_simulator")
       const cleaned = raw.replace(/```json|```/g, "").trim()
-      const parsed = JSON.parse(cleaned)
+      const parsed  = JSON.parse(cleaned)
       setResult(parsed)
       setUsage(u)
+      // Fixed: was missing saveToHistory
+      saveToHistory("what_if_simulator", {
+        result: parsed,
+        simulated: { platform: simulatedProfile.platform, niche: simulatedProfile.niche, followers: simulatedProfile.followers },
+      })
+      updateSessionInsight(
+        "what_if_simulator",
+        `simulated ${simulatedProfile.followers?.toLocaleString()} followers on ${simulatedProfile.platform}, projected +₹${parsed.incomeIncrease?.absolute?.toLocaleString()}/mo (+${parsed.incomeIncrease?.percentage}%)`
+      )
     } catch (err) {
       if (err.isRateLimit) {
-        setError(`Daily AI limit reached (${err.usage?.used}/${err.usage?.limit}). Try again tomorrow.`)
         setUsage(err.usage)
       } else {
         setError(err.message || "Failed to run simulation. Please try again.")

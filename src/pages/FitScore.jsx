@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "../firebase/config"
 import { useAuth } from "../context/AuthContext"
+import { useCreator } from "../context/CreatorContext"
 import { useFitScore } from "../hooks/useFitScore"
 import { sanitizeInput } from "../utils/sanitize"
 import AppShell from "../components/AppShell"
@@ -203,22 +204,16 @@ function CopyButton({ text }) {
 ───────────────────────────────────────────── */
 export default function FitScore() {
   const { user }    = useAuth()
+  const { profile } = useCreator()
   const { result, loading, error, usage, analyzeFit } = useFitScore()
 
-  const [profile,          setProfile]          = useState(null)
   const [brandName,        setBrandName]        = useState("")
   const [brandDescription, setBrandDescription] = useState("")
   const [nameFocused,      setNameFocused]      = useState(false)
   const [descFocused,      setDescFocused]      = useState(false)
   const [ringAnimate,      setRingAnimate]      = useState(false)
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const snap = await getDoc(doc(db, "users", user.uid))
-      if (snap.exists()) setProfile(snap.data())
-    }
-    fetchProfile()
-  }, [])
+  // profile comes from CreatorContext — no local fetch needed
 
   useEffect(() => {
     if (result) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "../firebase/config"
 import { useAuth } from "../context/AuthContext"
+import { useCreator } from "../context/CreatorContext"
 import { usePitchGenerator } from "../hooks/usePitchGenerator"
 import { sanitizeInput } from "../utils/sanitize"
 import AppShell from "../components/AppShell"
@@ -49,8 +50,8 @@ const GOALS = [
 
 export default function PitchGenerator() {
   const { user } = useAuth()
+  const { profile } = useCreator()
   const { result, loading, error, usage, generatePitch } = usePitchGenerator()
-  const [profile, setProfile] = useState(null)
   const [mounted, setMounted] = useState(false)
 
   const [brandName, setBrandName] = useState("")
@@ -61,14 +62,7 @@ export default function PitchGenerator() {
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [activeTab, setActiveTab] = useState("email")
 
-  useEffect(() => {
-    setMounted(true)
-    const fetchProfile = async () => {
-      const snap = await getDoc(doc(db, "users", user.uid))
-      if (snap.exists()) setProfile(snap.data())
-    }
-    fetchProfile()
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   const handleGenerate = () => {
     if (!brandName.trim() || !profile) return

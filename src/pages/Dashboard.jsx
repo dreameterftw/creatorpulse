@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { db } from "../firebase/config"
 import { useAuth } from "../context/AuthContext"
+import { useCreator } from "../context/CreatorContext"
 import { Link } from "react-router-dom"
 import AppShell from "../components/AppShell"
 import UsageBadge from "../components/UsageBadge"
@@ -885,29 +886,17 @@ function EditProfilePanel({ profile, onClose, onSave }) {
 // ─── Main ────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user }  = useAuth()
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { profile, profileLoading: loading, saveProfile } = useCreator()
   const [mounted, setMounted] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
 
-  const handleSaveProfile = async (form) => {
-    const followers      = Math.min(Math.max(Number(form.followers) || 0, 0), 1000000000)
-    const engagementRate = Math.min(Math.max(parseFloat(form.engagementRate) || 0, 0), 100)
-    const monthlyIncome  = Math.min(Math.max(Number(form.monthlyIncome) || 0, 0), 100000000)
-    const updated = { ...form, followers, engagementRate, monthlyIncome, updatedAt: new Date() }
-    await updateDoc(doc(db, "users", user.uid), updated)
-    setProfile((p) => ({ ...p, ...updated }))
-  }
-
   useEffect(() => {
-    const fetchProfile = async () => {
-      const snap = await getDoc(doc(db, "users", user.uid))
-      if (snap.exists()) setProfile(snap.data())
-      setLoading(false)
-      setTimeout(() => setMounted(true), 60)
-    }
-    fetchProfile()
-  }, [])
+    if (!loading) setTimeout(() => setMounted(true), 60)
+  }, [loading])
+
+  const handleSaveProfile = async (form) => {
+    await saveProfile(form)
+  }
 
   const firstName    = profile?.name?.split(" ")[0] || user?.email?.split("@")[0] || "Creator"
   const followers    = Number(profile?.followers || 0)

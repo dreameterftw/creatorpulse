@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "../firebase/config"
 import { useAuth } from "../context/AuthContext"
+import { useCreator } from "../context/CreatorContext"
 import { useRateCalculator } from "../hooks/useRateCalculator"
 import AppShell from "../components/AppShell"
 import UsageBadge from "../components/UsageBadge"
@@ -329,6 +330,7 @@ function DeliverableRow({ d, rateInfo, isSelected, onClick }) {
 export default function RateCalculator() {
   const { user } = useAuth()
   const { result, loading, error, usage, calculateRates } = useRateCalculator()
+  const { profile, profileLoading } = useCreator()
 
   const [platform,    setPlatform]    = useState("instagram")
   const [followers,   setFollowers]   = useState("")
@@ -338,19 +340,14 @@ export default function RateCalculator() {
   const [resultVisible, setResultVisible] = useState(false)
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const snap = await getDoc(doc(db, "users", user.uid))
-      if (snap.exists()) {
-        const data = snap.data()
-        if (data.platform)       setPlatform(data.platform)
-        if (data.followers)      setFollowers(data.followers)
-        if (data.engagementRate) setEngagement(data.engagementRate)
-        if (data.niche)          setNiche(data.niche)
-        calculateRates(data)
-      }
+    if (profile) {
+      setPlatform(profile.platforms?.[0] || profile.platform || "instagram")
+      setFollowers(profile.followers || "")
+      setEngagement(profile.engagementRate || "")
+      setNiche(profile.niches?.[0] || profile.niche || "tech")
+      calculateRates(profile)
     }
-    loadProfile()
-  }, [])
+  }, [profile])
 
   useEffect(() => {
     if (result) {

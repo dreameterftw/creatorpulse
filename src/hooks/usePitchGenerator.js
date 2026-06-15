@@ -1,16 +1,22 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
 import { saveToHistory } from "../utils/history"
+import { useCreator } from "../context/CreatorContext"
 
 export function usePitchGenerator() {
-  const [result, setResult] = useState(null)
+  const [result,  setResult]  = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [usage, setUsage] = useState(null)
+  const [error,   setError]   = useState(null)
+  const [usage,   setUsage]   = useState(null)
 
-  const generatePitch = async (profile, brandName, brandIndustry) => {
+  const { buildCrossContext, updateSessionInsight } = useCreator()
+
+  // brandGoal = campaign goal (e.g. "Product Launch", "Brand Awareness")
+  const generatePitch = async (profile, brandName, brandGoal) => {
     setLoading(true)
     setError(null)
+
+    const crossContext = buildCrossContext()
 
     const systemPrompt = `You are an expert influencer marketing consultant who writes highly converting brand pitch emails for content creators. You write personalized, professional pitches that get responses — not generic templates. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
@@ -18,17 +24,18 @@ export function usePitchGenerator() {
 
 CREATOR PROFILE:
 Name: ${profile.name}
-Platform: ${profile.platform}
-Niche: ${profile.niche}
+Platform: ${profile.platforms?.join(", ") || profile.platform}
+Niche: ${profile.niches?.join(", ") || profile.niche}
 Followers: ${profile.followers}
 Engagement Rate: ${profile.engagementRate}%
 Audience Location: ${profile.audienceLocation}
 Content Frequency: ${profile.contentFrequency}
 Monthly Income: ₹${profile.monthlyIncome}
+Income Streams: ${profile.incomeStreams?.join(", ") || "not specified"}${crossContext}
 
 TARGET BRAND:
 Brand Name: ${brandName}
-Industry: ${brandIndustry}
+Campaign Goal: ${brandGoal}
 
 Return a JSON object with this exact structure:
 {
@@ -37,11 +44,11 @@ Return a JSON object with this exact structure:
     "subject line option 2 - value driven",
     "subject line option 3 - direct and confident"
   ],
-  "email": "full personalized pitch email body — mention the brand by name, tie the creator's audience to the brand's target customer, include a specific collaboration idea, end with a clear CTA. Make it 200-250 words. Professional but conversational tone.",
+  "email": "full personalized pitch email body — mention the brand by name, tie the creator's audience to the brand's target customer, include a specific collaboration idea aligned with the campaign goal, end with a clear CTA. Make it 200-250 words. Professional but conversational tone.",
   "followUpEmail": "a short 80-100 word follow up email to send 5 days later if no response",
   "collaborationIdeas": [
     {
-      "idea": "specific collaboration concept",
+      "idea": "specific collaboration concept aligned with the campaign goal",
       "format": "e.g. Instagram Reel, YouTube integration",
       "whyItWorks": "why this idea fits both the creator and brand"
     },
@@ -60,10 +67,17 @@ Return a JSON object with this exact structure:
     try {
       const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "pitch_generator")
       const cleaned = raw.replace(/```json|```/g, "").trim()
-      const parsed = JSON.parse(cleaned)
-      setResult({ ...parsed, brandName, brandIndustry })
+      const parsed  = JSON.parse(cleaned)
+      setResult({ ...parsed, brandName, brandGoal })
       setUsage(u)
-      saveToHistory("pitch_generator", { result: { ...parsed, brandName, brandIndustry }, brandName })
+      saveToHistory("pitch_generator", {
+        result: { ...parsed, brandName, brandGoal },
+        brandName,
+      })
+      updateSessionInsight(
+        "pitch_generator",
+        `pitched ${brandName} (fit score ${parsed.fitScore}/100, goal: ${brandGoal})`
+      )
     } catch (err) {
       if (err.isRateLimit) {
         setUsage(err.usage)

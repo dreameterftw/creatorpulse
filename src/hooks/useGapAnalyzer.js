@@ -1,29 +1,34 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
 import { saveToHistory } from "../utils/history"
+import { useCreator } from "../context/CreatorContext"
 
 export function useGapAnalyzer() {
-  const [result, setResult] = useState(null)
+  const [result,  setResult]  = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [usage, setUsage] = useState(null)
+  const [error,   setError]   = useState(null)
+  const [usage,   setUsage]   = useState(null)
+
+  const { buildCrossContext, updateSessionInsight } = useCreator()
 
   const analyzeGaps = async (profile) => {
     setLoading(true)
     setError(null)
+
+    const crossContext = buildCrossContext()
 
     const systemPrompt = `You are an expert creator monetization strategist specializing in the Indian creator economy. You analyze a creator's current income streams and identify exactly what they're missing and how much money they're leaving on the table. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
     const userPrompt = `Analyze the monetization gaps for this creator:
 
 Name: ${profile.name}
-Platform: ${profile.platform}
-Niche: ${profile.niche}
+Platform: ${profile.platforms?.join(", ") || profile.platform}
+Niche: ${profile.niches?.join(", ") || profile.niche}
 Followers: ${profile.followers}
 Engagement Rate: ${profile.engagementRate}%
 Audience Location: ${profile.audienceLocation}
 Current Income Streams: ${profile.incomeStreams?.join(", ") || "none"}
-Current Monthly Income: ₹${profile.monthlyIncome}
+Current Monthly Income: ₹${profile.monthlyIncome}${crossContext}
 
 All possible income streams to evaluate:
 1. brand_deals - Sponsored content for brands
@@ -46,7 +51,7 @@ Return a JSON object with this exact structure:
       "id": "brand_deals",
       "label": "Brand Deals",
       "currentlyUsing": true or false,
-      "score": number 0-100 representing how well they could do in this stream,
+      "score": number 0-100,
       "monthlyPotential": number in INR,
       "priority": "high | medium | low",
       "tip": "one specific actionable tip for this stream",
@@ -67,10 +72,17 @@ Return a JSON object with this exact structure:
     try {
       const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "gap_radar")
       const cleaned = raw.replace(/```json|```/g, "").trim()
-      const parsed = JSON.parse(cleaned)
+      const parsed  = JSON.parse(cleaned)
       setResult(parsed)
       setUsage(u)
-      saveToHistory("gap_radar", { result: parsed, profile: { platform: profile.platform, niche: profile.niche } })
+      saveToHistory("gap_radar", {
+        result: parsed,
+        profile: { platform: profile.platforms?.[0] || profile.platform, niche: profile.niches?.[0] || profile.niche },
+      })
+      updateSessionInsight(
+        "gap_radar",
+        `monetization score ${parsed.overallScore}/100, leaving ₹${parsed.moneyLeftOnTable?.toLocaleString()}/mo on table, top opportunity: ${parsed.topOpportunities?.[0]?.stream || "unknown"}`
+      )
     } catch (err) {
       if (err.isRateLimit) {
         setUsage(err.usage)

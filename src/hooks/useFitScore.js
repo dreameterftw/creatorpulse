@@ -1,16 +1,21 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
 import { saveToHistory } from "../utils/history"
+import { useCreator } from "../context/CreatorContext"
 
 export function useFitScore() {
-  const [result, setResult] = useState(null)
+  const [result,  setResult]  = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [usage, setUsage] = useState(null)
+  const [error,   setError]   = useState(null)
+  const [usage,   setUsage]   = useState(null)
+
+  const { buildCrossContext, updateSessionInsight } = useCreator()
 
   const analyzeFit = async (profile, brandName, brandDescription) => {
     setLoading(true)
     setError(null)
+
+    const crossContext = buildCrossContext()
 
     const systemPrompt = `You are an expert influencer marketing strategist who deeply understands brand-creator alignment in the Indian creator economy. You analyze compatibility between creators and brands across multiple dimensions. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
@@ -18,12 +23,14 @@ export function useFitScore() {
 
 CREATOR PROFILE:
 Name: ${profile.name}
-Platform: ${profile.platform}
-Niche: ${profile.niche}
+Platform: ${profile.platforms?.join(", ") || profile.platform}
+Niche: ${profile.niches?.join(", ") || profile.niche}
 Followers: ${profile.followers}
 Engagement Rate: ${profile.engagementRate}%
 Audience Location: ${profile.audienceLocation}
 Content Frequency: ${profile.contentFrequency}
+Monthly Income: ₹${profile.monthlyIncome}
+Income Streams: ${profile.incomeStreams?.join(", ") || "not specified"}${crossContext}
 
 BRAND:
 Brand Name: ${brandName}
@@ -81,10 +88,14 @@ Analyze fit across these 5 dimensions and return a JSON object with this exact s
     try {
       const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "fit_score")
       const cleaned = raw.replace(/```json|```/g, "").trim()
-      const parsed = JSON.parse(cleaned)
+      const parsed  = JSON.parse(cleaned)
       setResult({ ...parsed, brandName })
       setUsage(u)
       saveToHistory("fit_score", { result: { ...parsed, brandName }, brandName })
+      updateSessionInsight(
+        "fit_score",
+        `${brandName} scored ${parsed.overallScore}/100 (${parsed.verdict}), ${parsed.shouldPitch ? "should pitch" : "skip"}`
+      )
     } catch (err) {
       if (err.isRateLimit) {
         setUsage(err.usage)

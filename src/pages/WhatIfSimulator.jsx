@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "../firebase/config"
 import { useAuth } from "../context/AuthContext"
+import { useCreator } from "../context/CreatorContext"
 import { useWhatIfSimulator } from "../hooks/useWhatIfSimulator"
 import AppShell from "../components/AppShell"
 import PageHeader from "../components/PageHeader"
@@ -159,28 +160,23 @@ function CompareBars({ current, projected }) {
 /* ============================================================ */
 export default function WhatIfSimulator() {
   const { user } = useAuth()
+  const { profile } = useCreator()
   const { result, loading, error, usage, simulate } = useWhatIfSimulator()
-  const [profile, setProfile] = useState(null)
   const [sim, setSim] = useState(null)
   const [resultMounted, setResultMounted] = useState(false)
 
+  // Initialise sim sliders when profile loads from context
   useEffect(() => {
-    const fetchProfile = async () => {
-      const snap = await getDoc(doc(db, "users", user.uid))
-      if (snap.exists()) {
-        const data = snap.data()
-        setProfile(data)
-        setSim({
-          platform: data.platform || "Instagram",
-          niche: data.niche || "Tech",
-          followers: Number(data.followers) || 10000,
-          engagementRate: Number(data.engagementRate) || 3.0,
-          contentFrequency: data.contentFrequency || "1-2x per week"
-        })
-      }
+    if (profile && !sim) {
+      setSim({
+        platform: profile.platforms?.[0] || profile.platform || "Instagram",
+        niche: profile.niches?.[0] || profile.niche || "Tech",
+        followers: Number(profile.followers) || 10000,
+        engagementRate: Number(profile.engagementRate) || 3.0,
+        contentFrequency: profile.contentFrequency || "1-2x per week",
+      })
     }
-    fetchProfile()
-  }, [])
+  }, [profile])
 
   useEffect(() => {
     if (result) {
@@ -193,8 +189,8 @@ export default function WhatIfSimulator() {
   const resetSim = () => {
     if (!profile) return
     setSim({
-      platform: profile.platform || "Instagram",
-      niche: profile.niche || "Tech",
+      platform: profile.platforms?.[0] || profile.platform || "Instagram",
+      niche: profile.niches?.[0] || profile.niche || "Tech",
       followers: Number(profile.followers) || 10000,
       engagementRate: Number(profile.engagementRate) || 3.0,
       contentFrequency: profile.contentFrequency || "1-2x per week"
