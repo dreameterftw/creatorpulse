@@ -3,7 +3,7 @@
 > AI-powered creator intelligence platform — know your worth, find missing income, pitch brands like a pro.
 
 Built for Indian content creators who are tired of guessing what to charge, missing monetization opportunities, or sending generic pitch emails that go unanswered.
-
+ 
 ---
 
 ## 👥 Team
