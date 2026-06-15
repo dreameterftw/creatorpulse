@@ -6,6 +6,7 @@ import { useCreator } from "../context/CreatorContext"
 import { Link } from "react-router-dom"
 import AppShell from "../components/AppShell"
 import UsageBadge from "../components/UsageBadge"
+import GrowthTracker from "../components/GrowthTracker"
 import {
   TrendingUp, Sparkles, Target, Zap, ArrowRight,
   DollarSign, Activity, Lightbulb, Copy, Check,
@@ -1039,6 +1040,11 @@ export default function Dashboard() {
             ) : (
               <p className="text-[12px] text-[#8a89a0]">Complete your profile to unlock personalized insights.</p>
             )}
+          </div>
+
+          {/* Growth Tracker */}
+          <div className="transition-all duration-500" style={{ opacity: mounted ? 1 : 0, transitionDelay: "350ms" }}>
+            <GrowthTracker />
           </div>
         </div>
 

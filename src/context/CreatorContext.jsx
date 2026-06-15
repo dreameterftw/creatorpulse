@@ -15,13 +15,16 @@ import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { db } from "../firebase/config"
 import { useAuth } from "./AuthContext"
 import { getHistory } from "../utils/history"
+import { getGrowthHistory, calcGrowthDelta } from "../utils/growthTracker"
 
 const CreatorContext = createContext(null)
 
 export function CreatorProvider({ children }) {
   const { user } = useAuth()
-  const [profile,       setProfile]       = useState(null)
-  const [profileLoading,setProfileLoading]= useState(true)
+  const [profile,        setProfile]        = useState(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [growthHistory,  setGrowthHistory]  = useState([])
+  const [growthDelta,    setGrowthDelta]    = useState(null)
   // Session insights — what each tool found this session
   const [sessionInsights, setSessionInsights] = useState({})
 
@@ -30,13 +33,23 @@ export function CreatorProvider({ children }) {
     if (!user) return
     setProfileLoading(true)
     const snap = await getDoc(doc(db, "users", user.uid))
-    if (snap.exists()) setProfile(snap.data())
+    if (snap.exists()) {
+      const data = snap.data()
+      setProfile(data)
+      // Load growth history for primary platform
+      const platform = data.platforms?.[0] || data.platform
+      if (platform) {
+        const history = await getGrowthHistory(user.uid, platform, 8)
+        setGrowthHistory(history)
+        setGrowthDelta(calcGrowthDelta(history))
+      }
+    }
     setProfileLoading(false)
   }, [user])
 
   useEffect(() => { fetchProfile() }, [fetchProfile])
 
-  // ── Save profile update + refresh local state ──
+  // ── Save profile update + refresh local state + reload growth ──
   const saveProfile = async (updates) => {
     if (!user) return
     const followers      = Math.min(Math.max(Number(updates.followers) || 0, 0), 1_000_000_000)
@@ -47,6 +60,24 @@ export function CreatorProvider({ children }) {
     setProfile(p => ({ ...p, ...payload }))
   }
 
+  // ── Refresh growth data after a new entry is saved ──
+  const refreshGrowth = useCallback(async (platform) => {
+    if (!user) return
+    const history = await getGrowthHistory(user.uid, platform, 8)
+    setGrowthHistory(history)
+    const delta = calcGrowthDelta(history)
+    setGrowthDelta(delta)
+    // Update session insight so all AI tools know the latest growth trend
+    if (delta) {
+      const trend = delta.delta > 0
+        ? `gaining ${delta.delta.toLocaleString()} followers/week (+${delta.pct}%)`
+        : delta.delta < 0
+        ? `losing ${Math.abs(delta.delta).toLocaleString()} followers/week (${delta.pct}%)`
+        : "flat growth this week"
+      updateSessionInsight("growth", `${trend}, now at ${delta.latest.followers.toLocaleString()} followers on ${platform}`)
+    }
+  }, [user, updateSessionInsight])
+
   // ── Record what a tool found this session ──
   const updateSessionInsight = useCallback((tool, summary) => {
     setSessionInsights(prev => ({ ...prev, [tool]: summary }))
@@ -55,6 +86,16 @@ export function CreatorProvider({ children }) {
   // ── Build cross-context string injected into every prompt ──
   const buildCrossContext = useCallback(() => {
     const lines = []
+
+    // Growth trend
+    if (growthDelta) {
+      const trend = growthDelta.delta > 0
+        ? `gaining ${growthDelta.delta.toLocaleString()} followers/week (+${growthDelta.pct}%)`
+        : growthDelta.delta < 0
+        ? `losing ${Math.abs(growthDelta.delta).toLocaleString()} followers/week (${growthDelta.pct}%)`
+        : "follower count is flat this week"
+      lines.push(`Growth trend: ${trend}, currently at ${growthDelta.latest.followers.toLocaleString()} followers`)
+    }
 
     // Session insights (live this session)
     if (sessionInsights.rate_calculator) {
@@ -71,6 +112,9 @@ export function CreatorProvider({ children }) {
     }
     if (sessionInsights.pitch_generator) {
       lines.push(`Recent pitch (this session): ${sessionInsights.pitch_generator}`)
+    }
+    if (sessionInsights.growth) {
+      lines.push(`Live growth update: ${sessionInsights.growth}`)
     }
 
     // Enrich with latest history if no session data
@@ -105,6 +149,9 @@ export function CreatorProvider({ children }) {
       profileLoading,
       refreshProfile: fetchProfile,
       saveProfile,
+      growthHistory,
+      growthDelta,
+      refreshGrowth,
       updateSessionInsight,
       buildCrossContext,
     }}>

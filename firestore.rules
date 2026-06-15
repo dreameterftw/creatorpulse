@@ -31,6 +31,20 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Growth tracking subcollection ──
+    // Written by the authenticated user — weekly follower snapshots.
+    match /users/{userId}/growth/{entryId} {
+      allow read:   if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.followers is number
+        && request.resource.data.followers >= 0
+        && request.resource.data.followers <= 1000000000
+        && request.resource.data.platform is string
+        && request.resource.data.platform.size() <= 50;
+      allow delete: if false;
+    }
+
     // Default-deny everything else
     match /{document=**} {
       allow read, write: if false;
