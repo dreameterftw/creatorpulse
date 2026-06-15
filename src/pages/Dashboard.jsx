@@ -610,30 +610,48 @@ function EPPill({ label, active, onClick }) {
 }
 
 function EditProfilePanel({ profile, onClose, onSave }) {
+  // Normalise stored values — may be string (old) or array (new)
+  const toArr = (v) => Array.isArray(v) ? v : (v ? [v] : [])
+
   const [form, setForm] = useState({
-    name:            profile?.name            || "",
-    platform:        profile?.platform        || "",
-    niche:           profile?.niche           || "",
-    followers:       profile?.followers       || "",
-    engagementRate:  profile?.engagementRate  || "",
-    contentFrequency:profile?.contentFrequency|| "",
-    audienceLocation:profile?.audienceLocation|| "",
-    monthlyIncome:   profile?.monthlyIncome   || "",
+    name:             profile?.name             || "",
+    platforms:        toArr(profile?.platforms  || profile?.platform),
+    niches:           toArr(profile?.niches     || profile?.niche),
+    customNiche:      "",
+    followers:        profile?.followers        || "",
+    engagementRate:   profile?.engagementRate   || "",
+    contentFrequency: profile?.contentFrequency || "",
+    audienceLocation: profile?.audienceLocation || "",
+    monthlyIncome:    profile?.monthlyIncome    || "",
   })
   const [saving, setSaving] = useState(false)
   const [saved,  setSaved]  = useState(false)
 
   const up = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
+  // Toggle item in an array field
+  const toggle = (field, val) => setForm(f => ({
+    ...f,
+    [field]: f[field].includes(val)
+      ? f[field].filter(x => x !== val)
+      : [...f[field], val],
+  }))
+
   const handleSave = async () => {
     setSaving(true)
-    await onSave(form)
+    // Keep backward-compat string fields too so AI prompts still work
+    const payload = {
+      ...form,
+      platform:  form.platforms[0] || "",
+      niche:     form.niches[0]    || "",
+    }
+    delete payload.customNiche
+    await onSave(payload)
     setSaving(false)
     setSaved(true)
     setTimeout(() => { setSaved(false); onClose() }, 1000)
   }
 
-  // Trap body scroll
   useEffect(() => {
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
@@ -701,25 +719,91 @@ function EditProfilePanel({ profile, onClose, onSave }) {
             />
           </div>
 
-          {/* Platform */}
+          {/* Platform — multi-select */}
           <div>
-            <label className="block font-mono text-[10px] tracking-widest uppercase text-[#8a89a0] mb-2">Primary Platform</label>
+            <label className="block font-mono text-[10px] tracking-widest uppercase text-[#8a89a0] mb-1">
+              Platforms
+              <span className="ml-2 normal-case font-sans font-normal text-[11px]" style={{ color: "#8a89a0" }}>— select all that apply</span>
+            </label>
             <div className="flex flex-wrap gap-2">
-              {EP_PLATFORMS.map(p => <EPPill key={p} label={p} active={form.platform === p} onClick={() => up("platform", p)} />)}
+              {EP_PLATFORMS.map(p => (
+                <EPPill key={p} label={p}
+                  active={form.platforms.includes(p)}
+                  onClick={() => toggle("platforms", p)} />
+              ))}
             </div>
+            {form.platforms.length > 1 && (
+              <p className="text-[11px] mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+                {form.platforms.length} platforms selected — primary: {form.platforms[0]}
+              </p>
+            )}
           </div>
 
-          {/* Niche */}
+          {/* Niche — multi-select + custom */}
           <div>
-            <label className="block font-mono text-[10px] tracking-widest uppercase text-[#8a89a0] mb-2">
-              Niche
+            <label className="block font-mono text-[10px] tracking-widest uppercase text-[#8a89a0] mb-1">
+              Niches
               <span className="ml-2 normal-case font-sans font-normal text-[11px]" style={{ color: "#ef2cc1" }}>
                 — switching niches? Update here ↓
               </span>
             </label>
-            <div className="flex flex-wrap gap-2">
-              {EP_NICHES.map(n => <EPPill key={n} label={n} active={form.niche === n} onClick={() => up("niche", n)} />)}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {EP_NICHES.map(n => (
+                <EPPill key={n} label={n}
+                  active={form.niches.includes(n)}
+                  onClick={() => toggle("niches", n)} />
+              ))}
             </div>
+            {/* Custom niche input */}
+            <div className="flex gap-2 mt-1">
+              <input
+                value={form.customNiche}
+                onChange={(e) => up("customNiche", e.target.value)}
+                placeholder="Or type your own (e.g. Crypto, Parenting…)"
+                className="flex-1 px-3 py-2 rounded-lg text-[13px] outline-none transition-all"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", color: "white" }}
+                onFocus={(e) => e.target.style.borderColor = "rgba(239,44,193,0.5)"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(255,255,255,0.09)"}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && form.customNiche.trim()) {
+                    if (!form.niches.includes(form.customNiche.trim())) {
+                      toggle("niches", form.customNiche.trim())
+                    }
+                    up("customNiche", "")
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (form.customNiche.trim() && !form.niches.includes(form.customNiche.trim())) {
+                    toggle("niches", form.customNiche.trim())
+                  }
+                  up("customNiche", "")
+                }}
+                className="px-3 py-2 rounded-lg text-[12px] font-semibold flex-shrink-0"
+                style={{ background: "rgba(239,44,193,0.15)", color: "#ef2cc1", border: "1px solid rgba(239,44,193,0.25)" }}
+              >
+                Add
+              </button>
+            </div>
+            {/* Selected niches */}
+            {form.niches.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {form.niches.filter(n => !EP_NICHES.includes(n)).map(n => (
+                  <div key={n} className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium"
+                    style={{ background: "linear-gradient(135deg,rgba(0,242,254,0.12),rgba(239,44,193,0.12))", border: "1px solid rgba(239,44,193,0.4)", color: "white" }}>
+                    {n}
+                    <button onClick={() => toggle("niches", n)} className="ml-0.5 opacity-50 hover:opacity-100">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {form.niches.length > 1 && (
+              <p className="text-[11px] mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+                {form.niches.length} niches selected
+              </p>
+            )}
           </div>
 
           {/* Followers + Engagement */}

@@ -6,6 +6,7 @@ import { useFitScore } from "../hooks/useFitScore"
 import { sanitizeInput } from "../utils/sanitize"
 import AppShell from "../components/AppShell"
 import UsageBadge from "../components/UsageBadge"
+import ToolExplainer from "../components/ToolExplainer"
 import {
   Sparkles, ChevronDown, AlertTriangle, TrendingUp,
   Target, RotateCcw, Copy, Check, X
@@ -298,6 +299,19 @@ export default function FitScore() {
         </div>
         <UsageBadge usage={usage} />
       </div>
+
+      <ToolExplainer
+        title="Brand Fit Score"
+        what="Before spending time writing a pitch, this tool checks how well you and a brand actually match — across 5 dimensions: audience overlap, niche relevance, platform alignment, engagement quality, and brand safety. It then tells you whether to pitch and what angle to use."
+        steps={[
+          "Type a brand name (e.g. Mamaearth, boAt, Zomato)",
+          "Optionally add a short brand description for more accurate results",
+          "Click Analyze — the AI scores your fit across 5 dimensions",
+          "Check the Should Pitch / Skip banner for a clear yes or no",
+          "If yes, use the Pitch Angle provided as your opening line",
+        ]}
+        tip="Adding a brand description (even one sentence) significantly improves accuracy. Try: 'D2C skincare brand targeting women 20-35, focused on natural ingredients.'"
+      />
 
       {/* ── Input Card ── */}
       <div className="rounded-2xl p-6 mb-8" style={{ background: "#111026", border: "1px solid rgba(255,255,255,0.07)" }}>

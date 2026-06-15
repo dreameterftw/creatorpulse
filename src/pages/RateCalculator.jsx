@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext"
 import { useRateCalculator } from "../hooks/useRateCalculator"
 import AppShell from "../components/AppShell"
 import UsageBadge from "../components/UsageBadge"
+import ToolExplainer from "../components/ToolExplainer"
 import {
   Sparkles, AlertCircle, CheckCircle, ChevronDown,
   TrendingUp, Zap, BarChart2, Users
@@ -393,6 +394,19 @@ export default function RateCalculator() {
         </div>
         <UsageBadge usage={usage} />
       </div>
+
+      <ToolExplainer
+        title="the Rate Calculator"
+        what="This tool analyzes your platform, follower count, engagement rate, and niche to generate a personalized rate card for 6 types of brand deals — from sponsored posts to UGC-only content. Rates are benchmarked against real Indian creator economy data."
+        steps={[
+          "Select your primary platform and enter your follower count",
+          "Enter your engagement rate — (likes + comments) ÷ followers × 100",
+          "Pick your content niche (or type a custom one)",
+          "Click Calculate — your rate card appears on the right",
+          "Tap any deliverable row to see its specific rate range",
+        ]}
+        tip="Your engagement rate matters more than follower count. A creator with 10K followers and 8% engagement will out-earn one with 50K followers and 1% engagement."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 

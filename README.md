@@ -5,13 +5,13 @@
 Built for Indian content creators who are tired of guessing what to charge, missing monetization opportunities, or sending generic pitch emails that go unanswered.
 
 ---
- 
+
 ## 👥 Team
 
 | Name | GitHub |
 |------|--------|
 | Aryan Rane | [@dreameterftw](https://github.com/dreameterftw) |
-| Manvi Gupta | [@manviofficial1212-gif](https://github.com/manviofficial1212-gif) |
+| Manvi Gupta | — |
 
 ---
 
@@ -21,45 +21,60 @@ CreatorPulse is a full-stack SaaS web app that gives content creators five AI-po
 
 | Tool | What it does |
 |------|-------------|
-| 💰 **Rate Calculator** | Generates justified rate cards for sponsored posts, reels, stories, YouTube integrations, UGC, and brand ambassador deals — based on your actual profile |
+| 💰 **Rate Calculator** | Generates justified rate cards for 6 deal types — based on your actual follower count, engagement rate, and niche. Includes a custom niche picker with free-text input. |
 | 📡 **Monetization Gap Radar** | Audits your current income streams across 8 categories and tells you exactly what you're leaving on the table, with ranked opportunities |
-| 🎯 **Brand-Creator Fit Score** | Analyzes how well you match a brand across 5 dimensions before you reach out — so you only pitch when the fit is right |
+| 🎯 **Brand-Creator Fit Score** | Analyzes how well you match a brand across 5 dimensions before you reach out — animated score ring, expandable dimension breakdown, and competitor brand suggestions |
 | ✉️ **Brand Pitch Generator** | Writes a personalized pitch email, 3 subject line variants, a follow-up, collab ideas, and a downloadable PDF media kit for any brand |
-| 🔮 **What-If Simulator** | Lets you adjust followers, engagement, niche, platform, and frequency to project how your earning potential would change |
+| 🔮 **What-If Simulator** | Adjust followers, engagement, niche, platform, and frequency to project how your earning potential would change |
+
+---
+
+## 🎨 UI/UX Features
+
+- **Dark premium design** — `#0a0916` base, Inter + JetBrains Mono typography
+- **Gradient accent system** — `#fc4c02 → #ef2cc1 → #bdbbff` used consistently across the app
+- **Animated hero card** on Dashboard — live rate counter with spark burst animation, negotiation buffer slider, copy-rate button
+- **Bar chart tooltips** — hover any projection bar to see the exact ₹ value
+- **Income Gap Meter** — visual showing current vs potential monthly earnings and what's causing the gap
+- **Edit Profile panel** — slide-in from dashboard, supports multiple platforms + multiple niches, custom niche text input
+- **ToolExplainer** — collapsible "How this works" section on every tool page
+- **History panel** — every tool saves results locally (up to 10 entries), restoreable with one click
+- **Bell notifications** — animated ring on hover, dropdown with contextual tips per tool
+- **Onboarding flow** — 3-step dark-themed wizard with gradient progress indicator
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Frontend
-- **React 18** + **Vite** — fast dev server, optimized production builds
-- **Tailwind CSS** — utility-first styling with custom design tokens
-- **React Router v6** — client-side routing with protected routes
-- **Recharts** — radar charts and bar charts for data visualization
+- **React 18** + **Vite** — fast dev server, optimized production builds with manual chunk splitting
+- **Tailwind CSS** — utility-first styling with custom CSS design tokens (`src/styles/tokens.css`)
+- **React Router v6** — client-side routing with protected routes + email verification gate
+- **Recharts** — radar charts, bar charts with hover tooltips
 - **Lucide React** — icon system
-- **jsPDF + html2canvas** — PDF media kit generation (lazy-loaded)
+- **jsPDF + html2canvas** — PDF media kit generation (lazy-loaded via dynamic import)
 
 ### Backend & AI
-- **Groq API** (llama-3.3-70b-versatile) — all AI features run through Groq for fast inference
-- **Cloudflare Workers** — serverless proxy that sits between the frontend and Groq, handling auth, rate limiting, and audit logging
+- **Groq API** (llama-3.3-70b-versatile) — all AI features, fast inference
+- **Cloudflare Workers** — serverless proxy with Firebase Auth verification, App Check verification, KV rate limiting, and audit logging
 - **Cloudflare KV** — per-user daily rate limiting (30 calls/day) and 30-day audit logs
 
 ### Auth & Database
 - **Firebase Authentication** — email/password + Google OAuth, email verification gate
 - **Cloud Firestore** — user profiles with field-level validation rules
-- **Firebase App Check** (reCAPTCHA v3) — prevents non-app requests from hitting Firestore
+- **Firebase App Check** (reCAPTCHA v3) — prevents non-app requests to Firestore
 - **Firebase Hosting** — production deployment
 
 ### Security Architecture
 | Layer | Protection |
 |-------|-----------|
-| Firestore Rules | Field validation, immutable email, type bounds, default-deny |
+| Firestore Rules | Field validation, immutable email, numeric bounds, default-deny |
 | App Check | reCAPTCHA v3 blocks non-app requests to Firestore |
-| Worker: Firebase JWT | Verifies every request comes from a real authenticated user |
-| Worker: Email Verified | Blocks unverified accounts from reaching Groq |
+| Worker: Firebase JWT | Verifies every request with Google JWKS (no npm deps) |
+| Worker: Email Verified | Blocks unverified accounts from Groq proxy |
 | Worker: App Check JWT | Double-verifies requests came from the real frontend |
-| Worker: KV Rate Limit | 30 AI calls/day per user, server-enforced, resets after 25h |
-| Worker: Audit Logs | Every AI call logged with uid, feature, token estimate, TTL 30d |
+| Worker: KV Rate Limit | 30 AI calls/day per user, server-enforced, TTL 25h |
+| Worker: Audit Logs | Every AI call logged (uid, feature, token estimate, 30d TTL) |
 | Input Sanitization | Strips injection characters from all user-controlled prompt fields |
 | Lazy PDF Loading | jsPDF/html2canvas only load when user clicks Download |
 
@@ -70,61 +85,59 @@ CreatorPulse is a full-stack SaaS web app that gives content creators five AI-po
 ```
 creatorpulse/
 ├── src/
-│   ├── components/         # Reusable UI components
-│   │   ├── AppShell.jsx    # Sidebar + main layout wrapper
-│   │   ├── Sidebar.jsx     # Dark nav with gradient active indicator
-│   │   ├── Navbar.jsx      # Public landing navbar
-│   │   ├── PageHeader.jsx  # Eyebrow / title / description pattern
-│   │   ├── KpiCard.jsx     # Dashboard metric cards
-│   │   ├── InsightCard.jsx # AI insight feed rows
-│   │   ├── ToolCard.jsx    # Dashboard tool grid cards
-│   │   ├── AIResponseCard.jsx  # Wrapper for AI-generated content
-│   │   ├── UsageBadge.jsx  # Shows remaining daily AI calls
-│   │   ├── LoadingSkeleton.jsx # Shimmer placeholders
-│   │   ├── EmptyState.jsx  # Empty state UI
-│   │   └── ErrorBoundary.jsx   # Runtime error catch
+│   ├── components/
+│   │   ├── AppShell.jsx        # Sidebar + main layout
+│   │   ├── Sidebar.jsx         # Dark nav with gradient active indicator
+│   │   ├── Navbar.jsx          # Public navbar + bell notifications
+│   │   ├── PageHeader.jsx      # Eyebrow / title / description
+│   │   ├── ToolExplainer.jsx   # Collapsible "how this works" per tool
+│   │   ├── HistoryPanel.jsx    # Slide-in history for all tool pages
+│   │   ├── KpiCard.jsx
+│   │   ├── InsightCard.jsx
+│   │   ├── ToolCard.jsx
+│   │   ├── AIResponseCard.jsx
+│   │   ├── UsageBadge.jsx
+│   │   ├── LoadingSkeleton.jsx
+│   │   ├── EmptyState.jsx
+│   │   └── ErrorBoundary.jsx
 │   ├── pages/
-│   │   ├── Landing.jsx     # Public landing page
-│   │   ├── Auth.jsx        # Login / signup
-│   │   ├── VerifyEmail.jsx # Email verification gate
-│   │   ├── Onboarding.jsx  # 3-step creator profile setup
-│   │   ├── Dashboard.jsx   # Home base with KPIs + tool grid
-│   │   ├── RateCalculator.jsx
-│   │   ├── GapRadar.jsx
-│   │   ├── FitScore.jsx
-│   │   ├── PitchGenerator.jsx
-│   │   ├── WhatIfSimulator.jsx
-│   │   └── AccountSettings.jsx # Profile + account deletion
-│   ├── hooks/              # AI feature hooks (one per tool)
+│   │   ├── Landing.jsx         # Public landing page
+│   │   ├── Auth.jsx            # Login/signup with conic border animation
+│   │   ├── VerifyEmail.jsx     # Email verification with security explainer
+│   │   ├── Onboarding.jsx      # 3-step dark-themed profile setup
+│   │   ├── Dashboard.jsx       # Command centre: KPIs, tools, insights, edit profile
+│   │   ├── RateCalculator.jsx  # Custom niche picker, animated rate card
+│   │   ├── GapRadar.jsx        # Revenue wheel, gap meter, opportunity cards
+│   │   ├── FitScore.jsx        # Animated score ring, expandable dimensions
+│   │   ├── PitchGenerator.jsx  # Tabbed pitch email + PDF media kit
+│   │   ├── WhatIfSimulator.jsx # Sliders + bar chart projection
+│   │   └── AccountSettings.jsx # Profile info + account deletion flow
+│   ├── hooks/                  # One hook per AI tool (auto-save to history)
 │   ├── utils/
-│   │   ├── groq.js         # Central AI call with rate limit + proxy
-│   │   ├── generateMediaKit.js  # jsPDF media kit builder
-│   │   ├── sanitize.js     # Input sanitization
-│   │   └── rateLimit.js    # Client-side Firestore rate limit (dev fallback)
+│   │   ├── groq.js             # Central AI call with rate limit + proxy
+│   │   ├── generateMediaKit.js # jsPDF builder (lazy-loaded)
+│   │   ├── history.js          # localStorage history per tool
+│   │   ├── sanitize.js         # Input sanitization
+│   │   └── rateLimit.js        # Client-side fallback rate limit
 │   ├── firebase/
-│   │   ├── config.js       # Firebase init
-│   │   └── appCheck.js     # reCAPTCHA v3 App Check
-│   ├── context/
-│   │   └── AuthContext.jsx # Auth state + loading
-│   └── styles/
-│       └── tokens.css      # CSS custom properties (design system)
-├── groq-proxy/             # Cloudflare Worker
+│   │   ├── config.js
+│   │   └── appCheck.js
+│   ├── context/AuthContext.jsx
+│   └── styles/tokens.css       # CSS custom properties (design system)
+├── groq-proxy/
 │   └── src/
-│       ├── index.standalone.js  # Self-contained Worker (no npm)
-│       └── verify-turnstile.js  # Turnstile token exchange (optional)
+│       └── index.standalone.js # Self-contained Cloudflare Worker
 ├── scripts/
-│   └── audit-summary.js    # Local ops: summarize KV audit logs
-├── firestore.rules         # Production Firestore security rules
+│   └── audit-summary.js        # Local ops: summarize KV audit logs
+├── firestore.rules
 ├── firestore.indexes.json
 ├── firebase.json
-└── .env.example            # All required env vars documented
+└── .env.example
 ```
 
 ---
 
 ## ⚙️ Environment Variables
-
-Create a `.env` file in the root with:
 
 ```env
 VITE_FIREBASE_API_KEY=
@@ -133,32 +146,24 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
-VITE_GROQ_API_KEY=
-VITE_GROQ_PROXY_URL=          # Cloudflare Worker URL (leave empty for local dev)
-VITE_RECAPTCHA_SITE_KEY=       # reCAPTCHA v3 site key
-VITE_APPCHECK_DEBUG_TOKEN=     # Firebase App Check debug token (local dev only)
-VITE_YOUTUBE_API_KEY=          # Optional — reserved for future use
+VITE_GROQ_API_KEY=           # Only used in local dev (direct Groq fallback)
+VITE_GROQ_PROXY_URL=         # Cloudflare Worker URL — leave empty for local dev
+VITE_RECAPTCHA_SITE_KEY=     # reCAPTCHA v3 site key (public)
+VITE_APPCHECK_DEBUG_TOKEN=   # Firebase App Check debug token (local dev only)
+VITE_YOUTUBE_API_KEY=        # Reserved for future use
 ```
-
-> **Note:** `VITE_GROQ_API_KEY` is only used in local dev (direct Groq fallback). In production, all AI calls go through the Cloudflare Worker and the key never reaches the client bundle.
 
 ---
 
 ## 🏃 Running Locally
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Copy env template and fill in your keys
-cp .env.example .env
-
-# 3. Start dev server
-npm run dev
-# → http://localhost:5173
+cp .env.example .env   # fill in your keys
+npm run dev            # → http://localhost:5173
 ```
 
-For local dev, leave `VITE_GROQ_PROXY_URL` empty — the app automatically falls back to calling Groq directly with your `VITE_GROQ_API_KEY`.
+Leave `VITE_GROQ_PROXY_URL` empty locally — the app calls Groq directly with `VITE_GROQ_API_KEY`.
 
 ---
 
@@ -177,35 +182,22 @@ firebase deploy --only firestore:rules
 ```
 
 ### Cloudflare Worker
-The Worker is self-contained in `groq-proxy/src/index.standalone.js` — no npm dependencies, paste directly into the Cloudflare dashboard editor.
+Paste `groq-proxy/src/index.standalone.js` into the Cloudflare dashboard editor (no npm needed).
 
-**Required Worker secrets** (Settings → Variables → Secrets):
-```
-GROQ_API_KEY
-FIREBASE_PROJECT_ID
-FIREBASE_PROJECT_NUMBER
-```
+**Worker secrets:** `GROQ_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_PROJECT_NUMBER`
 
-**Required environment variables:**
-```
-ALLOWED_ORIGIN = https://your-app.web.app
-DAILY_LIMIT    = 30
-```
+**Worker env vars:** `ALLOWED_ORIGIN`, `DAILY_LIMIT=30`
 
-**Required KV binding:**
-```
-Variable name: RATE_LIMIT_KV
-```
+**KV binding:** `RATE_LIMIT_KV` (namespace id: `18b8c3b1ff004e1ea56ee522b0762342`)
 
 ---
 
 ## 🔐 Security Notes
 
-- `.env` is gitignored — your keys never touch the repo
-- The Groq API key is only used server-side in the Worker in production
-- Firestore rules enforce field types, numeric bounds, and email immutability
-- Account deletion removes Firestore data first (while auth is still valid), then deletes the Auth account — no orphaned data
-- All user-controlled fields (brand name, description) are sanitized before being interpolated into AI prompts
+- `.env` is gitignored — API keys never reach the repo
+- Groq API key is only used server-side in the Worker in production
+- Account deletion removes Firestore data first (while auth is valid), then Auth account
+- All user-controlled fields are sanitized before AI prompt interpolation
 
 ---
 

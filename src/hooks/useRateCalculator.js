@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
+import { saveToHistory } from "../utils/history"
 
 export function useRateCalculator() {
   const [result, setResult] = useState(null)
@@ -47,10 +48,11 @@ Return a JSON object with this exact structure:
       const parsed = JSON.parse(cleaned)
       setResult(parsed)
       setUsage(u)
+      saveToHistory("rate_calculator", { result: parsed, profile: { platform: profile.platform, niche: profile.niche, followers: profile.followers } })
     } catch (err) {
       if (err.isRateLimit) {
-        setError(`Daily AI limit reached (${err.usage?.used}/${err.usage?.limit}). Try again tomorrow.`)
         setUsage(err.usage)
+        // suppress the error banner — usage badge already shows 0/30
       } else {
         setError(err.message || "Failed to calculate rates. Please try again.")
       }

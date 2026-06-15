@@ -424,6 +424,20 @@
     100% { transform: rotate(360deg); }
   }
 
+  /* ── Bell ring animation ── */
+  @keyframes bellRing {
+    0%,100% { transform-origin: top center; }
+    15%  { transform: rotateZ(10deg); }
+    30%  { transform: rotateZ(-10deg); }
+    45%  { transform: rotateZ(5deg); }
+    60%  { transform: rotateZ(-5deg); }
+    75%  { transform: rotateZ(2deg); }
+  }
+
+  .bell-icon:hover {
+    animation: bellRing 0.9s both;
+  }
+
   /* ── Auth submit button — conic rotating border ── */
   .auth-submit-poda {
     display: flex;

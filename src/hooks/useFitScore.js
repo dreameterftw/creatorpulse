@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
+import { saveToHistory } from "../utils/history"
 
 export function useFitScore() {
   const [result, setResult] = useState(null)
@@ -83,9 +84,9 @@ Analyze fit across these 5 dimensions and return a JSON object with this exact s
       const parsed = JSON.parse(cleaned)
       setResult({ ...parsed, brandName })
       setUsage(u)
+      saveToHistory("fit_score", { result: { ...parsed, brandName }, brandName })
     } catch (err) {
       if (err.isRateLimit) {
-        setError(`Daily AI limit reached (${err.usage?.used}/${err.usage?.limit}). Try again tomorrow.`)
         setUsage(err.usage)
       } else {
         setError(err.message || "Failed to analyze fit. Please try again.")

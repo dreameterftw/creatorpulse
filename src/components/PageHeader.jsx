@@ -10,9 +10,9 @@ export default function PageHeader({ eyebrow, title, description, action, childr
     <div className="flex items-start justify-between mb-8">
       <div>
         {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
-        <h1 className="text-[28px] font-semibold tracking-tight text-gray-900 mb-1">{title}</h1>
+        <h1 className="text-[28px] font-semibold tracking-tight text-white mb-1">{title}</h1>
         {description && (
-          <p className="text-[15px]" style={{ color: "var(--color-text-secondary)" }}>
+          <p className="text-[15px]" style={{ color: "#8a89a0" }}>
             {description}
           </p>
         )}

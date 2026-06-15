@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
+import { saveToHistory } from "../utils/history"
 
 export function useGapAnalyzer() {
   const [result, setResult] = useState(null)
@@ -69,9 +70,9 @@ Return a JSON object with this exact structure:
       const parsed = JSON.parse(cleaned)
       setResult(parsed)
       setUsage(u)
+      saveToHistory("gap_radar", { result: parsed, profile: { platform: profile.platform, niche: profile.niche } })
     } catch (err) {
       if (err.isRateLimit) {
-        setError(`Daily AI limit reached (${err.usage?.used}/${err.usage?.limit}). Try again tomorrow.`)
         setUsage(err.usage)
       } else {
         setError(err.message || "Failed to analyze gaps. Please try again.")

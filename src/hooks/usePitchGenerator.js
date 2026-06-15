@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { askGroq } from "../utils/groq"
+import { saveToHistory } from "../utils/history"
 
 export function usePitchGenerator() {
   const [result, setResult] = useState(null)
@@ -62,9 +63,9 @@ Return a JSON object with this exact structure:
       const parsed = JSON.parse(cleaned)
       setResult({ ...parsed, brandName, brandIndustry })
       setUsage(u)
+      saveToHistory("pitch_generator", { result: { ...parsed, brandName, brandIndustry }, brandName })
     } catch (err) {
       if (err.isRateLimit) {
-        setError(`Daily AI limit reached (${err.usage?.used}/${err.usage?.limit}). Try again tomorrow.`)
         setUsage(err.usage)
       } else {
         setError(err.message || "Failed to generate pitch. Please try again.")
