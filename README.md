@@ -201,10 +201,4 @@ firebase deploy --only firestore:rules
 
 ---
 
-## 📄 License
-
-MIT — free to use, modify, and build on.
-
----
-
 *Built with ❤️ by Aryan Rane & Manvi Gupta*
