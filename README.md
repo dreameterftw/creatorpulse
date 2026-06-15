@@ -201,10 +201,4 @@ Paste `groq-proxy/src/index.standalone.js` into the Cloudflare dashboard editor 
 
 ---
 
-## 📄 License
-
-MIT — free to use, modify, and build on.
-
----
-
 *Built with ❤️ by Aryan Rane & Manvi Gupta*
