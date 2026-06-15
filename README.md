@@ -19,7 +19,7 @@ Know your worth. Find missing income. Pitch brands like a pro. Track your growth
 | Name | Role |
 |------|------|
 | **Aryan Rane** | [@dreameterftw](https://github.com/dreameterftw) |
-| **Manvi Gupta** | Co-founder |
+| **Manvi Gupta** | [@manviofficial1212-gif](https://github.com/manviofficial1212-gif) | Co-founder
 
 ---
 
@@ -338,12 +338,6 @@ Namespace ID:  18b8c3b1ff004e1ea56ee522b0762342
 | Web App | https://creatorpulse-gg.web.app |
 | Groq Proxy | https://groq-proxy.dr3amtoosadr07.workers.dev |
 | GitHub | https://github.com/dreameterftw/creatorpulse |
-
----
-
-## 📄 License
-
-MIT — free to use, modify, and build on.
 
 ---
 
