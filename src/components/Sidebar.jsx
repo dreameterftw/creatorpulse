@@ -59,7 +59,7 @@ export default function Sidebar() {
           to="/account"
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
         >
-          <Settings size={16} strokeWidth={1.75} />
+          <Settings size={16} strokeWidth={1.75} className="gear-icon" />
           Account
         </NavLink>
         <button onClick={handleLogout} className="nav-item w-full text-left">

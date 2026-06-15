@@ -424,6 +424,15 @@
     100% { transform: rotate(360deg); }
   }
 
+  /* ── Settings gear spin ── */
+  @keyframes gearSpin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .nav-item:hover .gear-icon {
+    animation: gearSpin 2s linear infinite;
+  }
+
   /* ── Bell ring animation ── */
   @keyframes bellRing {
     0%,100% { transform-origin: top center; }

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
+import PlatformMarquee from "../components/PlatformMarquee"
 import { ArrowRight, DollarSign, Radar, Target, Mail, Sparkles, TrendingUp, Shield, Layers, Plus, Check } from "lucide-react"
 
 export default function Landing() {
@@ -210,6 +211,9 @@ export default function Landing() {
           <div className="absolute w-48 h-48 rounded-full bg-[#fc4c02]/5 blur-3xl -z-10 top-[50%] right-[20%]" />
         </div>
       </section>
+
+      {/* ── Platform Marquee ── */}
+      <PlatformMarquee />
 
       {/* ── 2. Feature Section 1 (Scale Experience) ── */}
       <section className="bg-white py-24 px-6 text-[#0a0916]">
