@@ -60,6 +60,11 @@ export function CreatorProvider({ children }) {
     setProfile(p => ({ ...p, ...payload }))
   }
 
+  // ── Record what a tool found this session ──
+  const updateSessionInsight = useCallback((tool, summary) => {
+    setSessionInsights(prev => ({ ...prev, [tool]: summary }))
+  }, [])
+
   // ── Refresh growth data after a new entry is saved ──
   const refreshGrowth = useCallback(async (platform) => {
     if (!user) return
@@ -67,7 +72,6 @@ export function CreatorProvider({ children }) {
     setGrowthHistory(history)
     const delta = calcGrowthDelta(history)
     setGrowthDelta(delta)
-    // Update session insight so all AI tools know the latest growth trend
     if (delta) {
       const trend = delta.delta > 0
         ? `gaining ${delta.delta.toLocaleString()} followers/week (+${delta.pct}%)`
@@ -77,11 +81,6 @@ export function CreatorProvider({ children }) {
       updateSessionInsight("growth", `${trend}, now at ${delta.latest.followers.toLocaleString()} followers on ${platform}`)
     }
   }, [user, updateSessionInsight])
-
-  // ── Record what a tool found this session ──
-  const updateSessionInsight = useCallback((tool, summary) => {
-    setSessionInsights(prev => ({ ...prev, [tool]: summary }))
-  }, [])
 
   // ── Build cross-context string injected into every prompt ──
   const buildCrossContext = useCallback(() => {
@@ -141,7 +140,7 @@ export function CreatorProvider({ children }) {
 
     if (lines.length === 0) return ""
     return `\n\nCREATOR SESSION CONTEXT (use this to give more tailored advice):\n${lines.map(l => `- ${l}`).join("\n")}`
-  }, [sessionInsights])
+  }, [sessionInsights, growthDelta])
 
   return (
     <CreatorContext.Provider value={{
