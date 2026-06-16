@@ -16,7 +16,7 @@ Know your worth. Find missing income. Pitch brands like a pro. Track your growth
 
 ## 👥 Team
 
-| Name | Role |
+| Name | Id |
 |------|------|
 | **Aryan Rane** | [@dreameterftw](https://github.com/dreameterftw) |
 | **Manvi Gupta** | [@manviofficial1212-gif](https://github.com/manviofficial1212-gif) | Co-founder
