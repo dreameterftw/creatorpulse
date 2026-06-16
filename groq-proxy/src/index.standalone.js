@@ -219,7 +219,7 @@ export default {
     try { body = await request.json() }
     catch { return jsonError("Invalid JSON body", 400, origin) }
 
-    const { systemPrompt, userPrompt, feature } = body
+    const { systemPrompt, userPrompt, feature, temperature } = body
 
     if (typeof systemPrompt !== "string" || typeof userPrompt !== "string") {
       return jsonError("systemPrompt and userPrompt must be strings", 400, origin)
@@ -233,6 +233,9 @@ export default {
     if (feature !== undefined && (typeof feature !== "string" || feature.length > 50)) {
       return jsonError("Invalid feature identifier", 400, origin)
     }
+    // temperature: clamp to 0–1, default 0.3
+    const temp = (typeof temperature === "number" && temperature >= 0 && temperature <= 1)
+      ? temperature : 0.3
 
     // 7. Rate limit
     const usage = await checkAndIncrementUsage(env, uid)
@@ -259,7 +262,7 @@ export default {
             { role: "system", content: systemPrompt },
             { role: "user",   content: userPrompt },
           ],
-          temperature: 0.7,
+          temperature: temp,
           max_tokens: 1500,
         }),
       })

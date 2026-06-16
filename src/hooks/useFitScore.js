@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { askGroq } from "../utils/groq"
+import { askGroq, extractJSON } from "../utils/groq"
 import { saveToHistory } from "../utils/history"
 import { useCreator } from "../context/CreatorContext"
 
@@ -17,11 +17,11 @@ export function useFitScore() {
 
     const crossContext = buildCrossContext()
 
-    const systemPrompt = `You are an expert influencer marketing strategist who deeply understands brand-creator alignment in the Indian creator economy. You analyze compatibility between creators and brands across multiple dimensions. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
+    const systemPrompt = `You are an expert influencer marketing strategist specializing in brand-creator alignment in the Indian creator economy. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
-    const userPrompt = `Analyze the fit between this creator and brand across multiple dimensions:
+    const userPrompt = `Analyze brand-creator fit:
 
-CREATOR PROFILE:
+CREATOR:
 Name: ${profile.name}
 Platform: ${profile.platforms?.join(", ") || profile.platform}
 Niche: ${profile.niches?.join(", ") || profile.niche}
@@ -29,73 +29,37 @@ Followers: ${profile.followers}
 Engagement Rate: ${profile.engagementRate}%
 Audience Location: ${profile.audienceLocation}
 Content Frequency: ${profile.contentFrequency}
-Monthly Income: ₹${profile.monthlyIncome}
-Income Streams: ${profile.incomeStreams?.join(", ") || "not specified"}${crossContext}
+Monthly Income: ₹${profile.monthlyIncome}${crossContext}
 
-BRAND:
-Brand Name: ${brandName}
-Brand Description: ${brandDescription || "Not provided — infer from brand name"}
+BRAND: ${brandName}
+DESCRIPTION: ${brandDescription || "infer from brand name"}
 
-Analyze fit across these 5 dimensions and return a JSON object with this exact structure:
+Return ONLY this JSON — no other text:
 {
   "overallScore": number 0-100,
   "verdict": "Strong Fit | Moderate Fit | Weak Fit | Poor Fit",
-  "summary": "3-4 sentence overall assessment of this pairing",
+  "summary": "3-4 sentence assessment",
   "dimensions": [
-    {
-      "name": "Audience Match",
-      "score": number 0-100,
-      "description": "how well creator's audience matches brand's target customer",
-      "positive": "what works",
-      "concern": "what could be a problem"
-    },
-    {
-      "name": "Niche Relevance",
-      "score": number 0-100,
-      "description": "how relevant creator's content niche is to brand's category",
-      "positive": "what works",
-      "concern": "what could be a problem"
-    },
-    {
-      "name": "Platform Alignment",
-      "score": number 0-100,
-      "description": "how well creator's platform suits brand's marketing goals",
-      "positive": "what works",
-      "concern": "what could be a problem"
-    },
-    {
-      "name": "Engagement Quality",
-      "score": number 0-100,
-      "description": "whether creator's engagement rate justifies brand investment",
-      "positive": "what works",
-      "concern": "what could be a problem"
-    },
-    {
-      "name": "Brand Safety",
-      "score": number 0-100,
-      "description": "how safe and aligned the creator's content style is for the brand",
-      "positive": "what works",
-      "concern": "what could be a problem"
-    }
+    { "name": "Audience Match", "score": number 0-100, "description": "brief desc", "positive": "what works", "concern": "potential issue" },
+    { "name": "Niche Relevance", "score": number 0-100, "description": "brief desc", "positive": "what works", "concern": "potential issue" },
+    { "name": "Platform Alignment", "score": number 0-100, "description": "brief desc", "positive": "what works", "concern": "potential issue" },
+    { "name": "Engagement Quality", "score": number 0-100, "description": "brief desc", "positive": "what works", "concern": "potential issue" },
+    { "name": "Brand Safety", "score": number 0-100, "description": "brief desc", "positive": "what works", "concern": "potential issue" }
   ],
   "shouldPitch": true or false,
-  "pitchAngle": "if shouldPitch is true — the specific angle to use when pitching this brand",
-  "dealBreakers": ["any absolute dealbreakers that would make a brand reject immediately"],
-  "negotiationTips": ["tip 1 for negotiating with this brand", "tip 2"],
-  "competitorBrands": ["3 similar brands that might be an even better fit"]
+  "pitchAngle": "specific pitch angle if shouldPitch is true",
+  "dealBreakers": ["dealbreaker 1"],
+  "negotiationTips": ["tip 1", "tip 2"],
+  "competitorBrands": ["brand1", "brand2", "brand3"]
 }`
 
     try {
-      const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "fit_score")
-      const cleaned = raw.replace(/```json|```/g, "").trim()
-      const parsed  = JSON.parse(cleaned)
+      const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "fit_score", 0.1)
+      const parsed = extractJSON(raw)
       setResult({ ...parsed, brandName })
       setUsage(u)
       saveToHistory("fit_score", { result: { ...parsed, brandName }, brandName })
-      updateSessionInsight(
-        "fit_score",
-        `${brandName} scored ${parsed.overallScore}/100 (${parsed.verdict}), ${parsed.shouldPitch ? "should pitch" : "skip"}`
-      )
+      updateSessionInsight("fit_score", `${brandName} scored ${parsed.overallScore}/100 (${parsed.verdict}), ${parsed.shouldPitch ? "should pitch" : "skip"}`)
     } catch (err) {
       if (err.isRateLimit) {
         setUsage(err.usage)

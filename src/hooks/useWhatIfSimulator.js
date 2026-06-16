@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { askGroq } from "../utils/groq"
+import { askGroq, extractJSON } from "../utils/groq"
 import { saveToHistory } from "../utils/history"
 import { useCreator } from "../context/CreatorContext"
 
@@ -17,28 +17,27 @@ export function useWhatIfSimulator() {
 
     const crossContext = buildCrossContext()
 
-    const systemPrompt = `You are an expert creator economy analyst. You compare a creator's current profile against a hypothetical "what-if" version and project how their monetization potential would change. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
+    const systemPrompt = `You are an expert creator economy analyst. You compare current vs hypothetical creator profiles and project monetization changes. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
-    const userPrompt = `Compare these two creator profiles and project the monetization impact:
+    const userPrompt = `Compare these two profiles and project monetization impact:
 
-CURRENT PROFILE:
+CURRENT:
 Platform: ${currentProfile.platforms?.join(", ") || currentProfile.platform}
 Niche: ${currentProfile.niches?.join(", ") || currentProfile.niche}
 Followers: ${currentProfile.followers}
 Engagement Rate: ${currentProfile.engagementRate}%
 Content Frequency: ${currentProfile.contentFrequency}
 Monthly Income: ₹${currentProfile.monthlyIncome}
-Audience Location: ${currentProfile.audienceLocation || "India"}
-Income Streams: ${currentProfile.incomeStreams?.join(", ") || "not specified"}${crossContext}
+Audience Location: ${currentProfile.audienceLocation || "India"}${crossContext}
 
-SIMULATED "WHAT-IF" PROFILE:
+SIMULATED:
 Platform: ${simulatedProfile.platform}
 Niche: ${simulatedProfile.niche}
 Followers: ${simulatedProfile.followers}
 Engagement Rate: ${simulatedProfile.engagementRate}%
 Content Frequency: ${simulatedProfile.contentFrequency}
 
-Return a JSON object with this exact structure:
+Return ONLY this JSON — no other text:
 {
   "currentEstimate": {
     "sponsoredPostRate": number in INR,
@@ -50,31 +49,22 @@ Return a JSON object with this exact structure:
     "monthlyIncomePotential": number in INR,
     "marketPosition": "nano | micro | mid | macro"
   },
-  "incomeIncrease": {
-    "absolute": number in INR,
-    "percentage": number
-  },
+  "incomeIncrease": { "absolute": number in INR, "percentage": number },
   "keyChanges": [
-    {
-      "factor": "e.g. Followers, Engagement Rate, Niche",
-      "impact": "description of how this change affects earning potential",
-      "magnitude": "high | medium | low"
-    }
+    { "factor": "factor name", "impact": "impact description", "magnitude": "high | medium | low" }
   ],
-  "timeToAchieve": "realistic estimate of how long it would take to reach the simulated profile, e.g. '6-9 months'",
-  "actionPlan": ["concrete step 1 to get there", "concrete step 2", "concrete step 3"],
+  "timeToAchieve": "e.g. '6-9 months'",
+  "actionPlan": ["step 1", "step 2", "step 3"],
   "feasibility": "high | medium | low",
-  "feasibilityNote": "1-2 sentence note on how realistic this growth target is",
-  "insight": "2-3 sentence insight comparing the two scenarios"
+  "feasibilityNote": "1-2 sentences",
+  "insight": "2-3 sentences comparing scenarios"
 }`
 
     try {
-      const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "what_if_simulator")
-      const cleaned = raw.replace(/```json|```/g, "").trim()
-      const parsed  = JSON.parse(cleaned)
+      const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "what_if_simulator", 0.1)
+      const parsed = extractJSON(raw)
       setResult(parsed)
       setUsage(u)
-      // Fixed: was missing saveToHistory
       saveToHistory("what_if_simulator", {
         result: parsed,
         simulated: { platform: simulatedProfile.platform, niche: simulatedProfile.niche, followers: simulatedProfile.followers },

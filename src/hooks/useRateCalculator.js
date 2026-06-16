@@ -1,7 +1,8 @@
 import { useState } from "react"
-import { askGroq } from "../utils/groq"
+import { askGroq, extractJSON } from "../utils/groq"
 import { saveToHistory } from "../utils/history"
 import { useCreator } from "../context/CreatorContext"
+import { makeCacheKey, getCached, setCached } from "../utils/resultCache"
 
 export function useRateCalculator() {
   const [result,  setResult]  = useState(null)
@@ -9,59 +10,80 @@ export function useRateCalculator() {
   const [error,   setError]   = useState(null)
   const [usage,   setUsage]   = useState(null)
 
-  const { buildCrossContext, updateSessionInsight } = useCreator()
+  const { updateSessionInsight } = useCreator()
+  // Note: we intentionally do NOT use buildCrossContext here.
+  // Rates must be deterministic based purely on hard stats, not session state.
 
   const calculateRates = async (profile) => {
     setLoading(true)
     setError(null)
 
-    const crossContext = buildCrossContext()
+    // ── Build deterministic cache key from the inputs that affect rates ──
+    const cacheInputs = {
+      platform:        profile.platforms?.[0] || profile.platform,
+      niche:           (profile.niches || [profile.niche]).sort().join(","),
+      followers:       Number(profile.followers),
+      engagementRate:  Number(profile.engagementRate),
+      audienceLocation:profile.audienceLocation,
+    }
+    const cacheKey = makeCacheKey(cacheInputs)
+    const cached = getCached(cacheKey)
+    if (cached) {
+      setResult(cached)
+      setLoading(false)
+      return
+    }
 
-    const systemPrompt = `You are an expert influencer marketing consultant with deep knowledge of the Indian creator economy. You provide data-backed rate recommendations for content creators. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
+    // ── Prompt — no cross-context, temperature 0 for determinism ──
+    const systemPrompt = `You are an expert influencer marketing consultant with deep knowledge of the Indian creator economy. You provide data-backed rate recommendations. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
-    const userPrompt = `Calculate detailed brand deal rates for this creator:
+    const userPrompt = `Calculate sponsorship rates for this creator. Use only the stats provided — do not infer or add assumptions beyond what is given.
 
-Name: ${profile.name}
-Platform: ${profile.platforms?.join(", ") || profile.platform}
+Platform: ${cacheInputs.platform}
 Niche: ${profile.niches?.join(", ") || profile.niche}
-Followers: ${profile.followers}
-Engagement Rate: ${profile.engagementRate}%
-Audience Location: ${profile.audienceLocation}
-Content Frequency: ${profile.contentFrequency}
-Current Monthly Income: ₹${profile.monthlyIncome}
-Current Income Streams: ${profile.incomeStreams?.join(", ") || "not specified"}${crossContext}
+Followers: ${cacheInputs.followers}
+Engagement Rate: ${cacheInputs.engagementRate}%
+Audience Location: ${cacheInputs.audienceLocation || "India"}
+Content Frequency: ${profile.contentFrequency || "not specified"}
+Current Monthly Income: ₹${profile.monthlyIncome || 0}
 
-Return a JSON object with this exact structure:
+IMPORTANT: For a creator with ${cacheInputs.followers} followers and ${cacheInputs.engagementRate}% engagement, provide precise, consistent rates that reflect the Indian market. Do not round to large numbers — be specific.
+
+Return ONLY this JSON structure, no other text:
 {
-  "summary": "2-3 sentence summary of why this creator is worth what they are",
+  "summary": "2-3 sentences explaining the rate rationale",
   "rates": {
-    "sponsored_post": { "min": number, "max": number, "currency": "INR" },
-    "story_set": { "min": number, "max": number, "currency": "INR" },
-    "reel": { "min": number, "max": number, "currency": "INR" },
+    "sponsored_post":      { "min": number, "max": number, "currency": "INR" },
+    "story_set":           { "min": number, "max": number, "currency": "INR" },
+    "reel":                { "min": number, "max": number, "currency": "INR" },
     "youtube_integration": { "min": number, "max": number, "currency": "INR" },
-    "brand_ambassador": { "min": number, "max": number, "currency": "INR" },
-    "ugc_only": { "min": number, "max": number, "currency": "INR" }
+    "brand_ambassador":    { "min": number, "max": number, "currency": "INR" },
+    "ugc_only":            { "min": number, "max": number, "currency": "INR" }
   },
   "strengths": ["strength1", "strength2", "strength3"],
   "engagementTier": "low | average | good | excellent",
   "marketPosition": "nano | micro | mid | macro",
-  "justification": "2-3 sentences explaining the rate reasoning with niche and engagement context"
+  "justification": "2-3 sentences explaining rate reasoning with specific reference to follower count and engagement"
 }`
 
     try {
-      const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "rate_calculator")
-      const cleaned = raw.replace(/```json|```/g, "").trim()
-      const parsed  = JSON.parse(cleaned)
+      // temperature: 0 → fully deterministic output for same inputs
+      const { content: raw, usage: u } = await askGroq(systemPrompt, userPrompt, "rate_calculator", 0)
+      const parsed = extractJSON(raw)
+
+      // Cache result so re-runs with same inputs return instantly
+      setCached(cacheKey, parsed)
       setResult(parsed)
       setUsage(u)
+
       saveToHistory("rate_calculator", {
         result: parsed,
-        profile: { platform: profile.platforms?.[0] || profile.platform, niche: profile.niches?.[0] || profile.niche, followers: profile.followers },
+        profile: { platform: cacheInputs.platform, niche: cacheInputs.niche, followers: cacheInputs.followers },
       })
-      // Record for cross-tool context
+
       updateSessionInsight(
         "rate_calculator",
-        `${parsed.marketPosition} creator, ${parsed.engagementTier} engagement, suggested post rate ₹${Math.round((parsed.rates?.sponsored_post?.min + parsed.rates?.sponsored_post?.max) / 2)?.toLocaleString()}`
+        `${parsed.marketPosition} creator, ${parsed.engagementTier} engagement, suggested post rate ₹${Math.round(((parsed.rates?.sponsored_post?.min || 0) + (parsed.rates?.sponsored_post?.max || 0)) / 2)?.toLocaleString()}`
       )
     } catch (err) {
       if (err.isRateLimit) {
