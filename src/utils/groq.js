@@ -6,25 +6,21 @@ const PROXY_URL = import.meta.env.VITE_GROQ_PROXY_URL || ""
 
 /**
  * Robustly extract valid JSON from an AI response string.
- * Handles: markdown fences, leading/trailing text, truncated responses.
+ * Handles markdown fences, leading/trailing text, truncated responses.
  */
 export function extractJSON(raw) {
   if (!raw) throw new Error("Empty response from AI")
 
-  // Strip markdown fences
   let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim()
 
-  // Try direct parse first
   try { return JSON.parse(cleaned) } catch {}
 
-  // Find the outermost { ... } block
   const start = cleaned.indexOf("{")
   const end   = cleaned.lastIndexOf("}")
   if (start !== -1 && end !== -1 && end > start) {
     try { return JSON.parse(cleaned.slice(start, end + 1)) } catch {}
   }
 
-  // Find the outermost [ ... ] block
   const aStart = cleaned.indexOf("[")
   const aEnd   = cleaned.lastIndexOf("]")
   if (aStart !== -1 && aEnd !== -1 && aEnd > aStart) {
@@ -38,14 +34,15 @@ export function extractJSON(raw) {
  * Central Groq call.
  * @param {string} systemPrompt
  * @param {string} userPrompt
- * @param {string} feature      - identifier logged for audit/cost tracking
- * @param {number} temperature  - 0.0–1.0, default 0.3 (lower = more consistent)
+ * @param {string} feature     - logged for audit tracking
+ * @param {number} temperature - 0.0–1.0, default 0.3
  * Returns { content: string, usage: { used, limit } | null }
  */
 export async function askGroq(systemPrompt, userPrompt, feature = "unknown", temperature = 0.3) {
   const user = auth.currentUser
   if (!user) throw new Error("Not authenticated")
 
+  // ── Production: always use Worker proxy ──
   if (PROXY_URL) {
     const [idToken, appCheckToken] = await Promise.all([
       user.getIdToken(),
@@ -81,7 +78,9 @@ export async function askGroq(systemPrompt, userPrompt, feature = "unknown", tem
     return { content: data.content, usage: data.usage }
   }
 
-  // ── Dev fallback ──
+  // ── Dev fallback: direct Groq call ──
+  // NOTE: This only works in local dev. Groq blocks direct browser calls in production (CORS).
+  // If AI features are broken on the live site, set VITE_GROQ_PROXY_URL in GitHub secrets.
   const { allowed, remaining } = await checkAndIncrementUsage(user.uid)
   if (!allowed) {
     const err = new Error("Daily AI limit reached (30 calls/day). Try again tomorrow.")
@@ -92,22 +91,27 @@ export async function askGroq(systemPrompt, userPrompt, feature = "unknown", tem
 
   console.debug(`[groq] dev mode (${feature}) — ${remaining} calls remaining today`)
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user",   content: userPrompt },
-      ],
-      temperature,
-      max_tokens: 1500,
-    }),
-  })
+  let response
+  try {
+    response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user",   content: userPrompt },
+        ],
+        temperature,
+        max_tokens: 1500,
+      }),
+    })
+  } catch {
+    throw new Error("AI request failed — ensure VITE_GROQ_PROXY_URL is set for production deployments.")
+  }
 
   const data = await response.json()
   const limit = 30

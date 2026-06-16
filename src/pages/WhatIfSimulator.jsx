@@ -63,16 +63,31 @@ function useCountUp(target, duration = 900, deps = []) {
   return val
 }
 
-/* ---------------- Branded slider ---------------- */
-function BrandedSlider({ label, value, min, max, step, onChange, suffix = "", current, accent = "#00f2fe" }) {
-  const pct = ((value - min) / (max - min)) * 100
+/* ---------------- Branded slider with optional text input ---------------- */
+function BrandedSlider({ label, value, min, max, step, onChange, suffix = "", current, accent = "#00f2fe", allowInput = false, onInputChange }) {
+  const pct = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100))
   return (
     <div>
       <div className="flex justify-between items-center mb-2">
         <span className="font-mono text-[10px] tracking-widest uppercase text-[#8a89a0]">{label}</span>
-        <span className="font-mono text-[13px] font-bold text-white">
-          {typeof value === "number" && value >= 1000 ? value.toLocaleString() : value}{suffix}
-        </span>
+        {allowInput ? (
+          <input
+            type="number"
+            value={value}
+            min={min}
+            max={max}
+            onChange={(e) => {
+              const v = Number(e.target.value)
+              if (!isNaN(v)) onInputChange?.(Math.min(max, Math.max(min, v)))
+            }}
+            className="font-mono text-[13px] font-bold text-white bg-transparent border-b outline-none w-28 text-right"
+            style={{ borderColor: `${accent}50` }}
+          />
+        ) : (
+          <span className="font-mono text-[13px] font-bold text-white">
+            {typeof value === "number" && value >= 1000 ? value.toLocaleString() : value}{suffix}
+          </span>
+        )}
       </div>
       <div className="relative">
         <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
@@ -90,7 +105,7 @@ function BrandedSlider({ label, value, min, max, step, onChange, suffix = "", cu
           min={min}
           max={max}
           step={step}
-          value={value}
+          value={Math.min(max, Math.max(min, value))}
           onChange={onChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
@@ -271,6 +286,8 @@ export default function WhatIfSimulator() {
               min={500}
               max={1000000}
               step={500}
+              allowInput={true}
+              onInputChange={(v) => setSim((s) => ({ ...s, followers: v }))}
               onChange={(e) => setSim((s) => ({ ...s, followers: Number(e.target.value) }))}
               current={Number(profile.followers || 0)}
               accent="#00f2fe"
