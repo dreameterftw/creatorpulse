@@ -28,3 +28,6 @@ dist-ssr
 *.sln
 # Wrangler
 groq-proxy/.wrangler/
+
+# Firebase cache
+.firebase/
