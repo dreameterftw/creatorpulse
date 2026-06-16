@@ -116,6 +116,14 @@ function getTodayKey(uid) {
 }
 
 async function checkAndIncrementUsage(env, uid) {
+  if (!env.RATE_LIMIT_KV || typeof env.RATE_LIMIT_KV.get !== "function") {
+    return {
+      error: "RATE_LIMIT_KV binding missing or invalid",
+      allowed: false,
+      count: 0,
+      limit: Number(env.DAILY_LIMIT || 30),
+    }
+  }
   const key   = getTodayKey(uid)
   const limit = Number(env.DAILY_LIMIT || 30)
   const cur   = await env.RATE_LIMIT_KV.get(key)
@@ -123,7 +131,6 @@ async function checkAndIncrementUsage(env, uid) {
 
   if (count >= limit) return { allowed: false, count, limit }
 
-  // TTL 25h to handle timezone edge cases
   await env.RATE_LIMIT_KV.put(key, String(count + 1), { expirationTtl: 90000 })
   return { allowed: true, count: count + 1, limit }
 }
@@ -131,6 +138,7 @@ async function checkAndIncrementUsage(env, uid) {
 // ─── Audit logging (KV, fire-and-forget) ──────────────────────────────────
 
 function logAiCall(env, { uid, feature, systemPromptLen, userPromptLen, responseLen }) {
+  if (!env.RATE_LIMIT_KV || typeof env.RATE_LIMIT_KV.put !== "function") return
   const entry = JSON.stringify({
     uid, feature,
     timestamp: new Date().toISOString(),
