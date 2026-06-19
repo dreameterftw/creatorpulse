@@ -35,7 +35,18 @@ export function useRateCalculator() {
     }
 
     // ── Prompt — no cross-context, temperature 0 for determinism ──
-    const systemPrompt = `You are an expert influencer marketing consultant with deep knowledge of the Indian creator economy. You provide data-backed rate recommendations. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
+    const systemPrompt = `You are an expert influencer marketing consultant with deep knowledge of the Indian creator economy. You provide data-backed rate recommendations calibrated to the Indian market.
+
+CRITICAL: All rates must be in INR and anchored to these Indian market benchmarks:
+- Nano creator (<10K followers, 5% eng): ₹500–₹2,000 per sponsored post
+- Micro creator (10K–100K followers, 4–6% eng): ₹3,000–₹20,000 per sponsored post
+- Mid-tier creator (100K–500K followers, 3–5% eng): ₹20,000–₹80,000 per sponsored post
+- Macro creator (500K–1M followers): ₹80,000–₹2,00,000 per sponsored post
+- Reels command 1.3–1.6x a static post rate; Stories are 0.4–0.6x; YouTube integration 1.8–2.5x static post; Brand ambassador 4–6x monthly post rate; UGC-only 0.5–0.7x post rate
+- High engagement (>6%) justifies up to 40% premium; low engagement (<2%) warrants 20–30% discount
+- Finance, tech, and D2C niches in India command 20–35% premium over lifestyle/entertainment
+
+Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
     const userPrompt = `Calculate sponsorship rates for this creator. Use only the stats provided — do not infer or add assumptions beyond what is given.
 

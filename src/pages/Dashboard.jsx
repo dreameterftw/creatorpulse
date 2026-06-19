@@ -902,8 +902,14 @@ export default function Dashboard() {
   const firstName    = profile?.name?.split(" ")[0] || user?.email?.split("@")[0] || "Creator"
   const followers    = Number(profile?.followers || 0)
   const eng          = parseFloat(profile?.engagementRate || 0)
-  const suggestedRaw = followers > 0 ? Math.round(followers * 0.0003 * (1 + eng / 10)) : 0
-  const monthlyRaw   = followers > 0 ? Math.round(followers * 0.0009 * (1 + eng / 10)) : 0
+  // Indian market rate benchmarks (INR):
+  // Nano  (<10K):  ₹500–₹2,000/post   → ~₹0.15–0.25/follower
+  // Micro (10–100K): ₹2,000–₹20,000/post → ~₹0.15–0.20/follower
+  // Mid   (100K–1M): ₹20,000–₹1,50,000/post → ~₹0.12–0.18/follower
+  // Engagement premium: each 1% above 2% baseline adds ~8% to rate
+  const engPremium   = Math.max(1, 1 + (eng - 2) * 0.08)
+  const suggestedRaw = followers > 0 ? Math.round(followers * 0.18 * engPremium) : 0
+  const monthlyRaw   = followers > 0 ? Math.round(followers * 0.55 * engPremium) : 0
   const growthScore  = Math.min(Math.round(eng * 10 + (followers > 100000 ? 20 : followers > 10000 ? 10 : 0)), 100)
   const insights     = getInsights(profile)
 

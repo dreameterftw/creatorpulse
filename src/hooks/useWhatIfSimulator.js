@@ -17,7 +17,16 @@ export function useWhatIfSimulator() {
 
     const crossContext = buildCrossContext()
 
-    const systemPrompt = `You are an expert creator economy analyst. You compare current vs hypothetical creator profiles and project monetization changes. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
+    const systemPrompt = `You are an expert creator economy analyst specialising in the Indian market. You compare current vs hypothetical creator profiles and project monetization changes.
+
+CRITICAL: All monetary values must be in INR anchored to Indian market realities:
+- Nano (<10K): ₹500–₹2,000/post, ₹3,000–₹15,000/month potential
+- Micro (10K–100K): ₹3,000–₹20,000/post, ₹15,000–₹80,000/month potential
+- Mid-tier (100K–500K): ₹20,000–₹80,000/post, ₹80,000–₹4,00,000/month potential
+- Macro (500K–1M): ₹80,000–₹2,00,000/post, ₹3,00,000–₹15,00,000/month potential
+- Engagement and niche (finance/tech command 20–35% premium) significantly affect these ranges
+
+Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
     const userPrompt = `Compare these two profiles and project monetization impact:
 

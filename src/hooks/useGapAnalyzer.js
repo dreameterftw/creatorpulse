@@ -17,7 +17,17 @@ export function useGapAnalyzer() {
 
     const crossContext = buildCrossContext()
 
-    const systemPrompt = `You are an expert creator monetization strategist specializing in the Indian creator economy. You analyze a creator's current income streams and identify exactly what they're missing. Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
+    const systemPrompt = `You are an expert creator monetization strategist specializing in the Indian creator economy. You analyze a creator's current income streams and identify exactly what they're missing.
+
+CRITICAL: All monetary estimates must be in INR calibrated to the Indian market:
+- Brand deals: ₹3,000–₹20,000/post for micro creators; ₹20,000–₹80,000 for mid-tier
+- Affiliate commissions: ₹2,000–₹15,000/month for active micro creators in finance/tech/lifestyle
+- AdSense/YouTube: ₹80–₹200 RPM for Indian audiences (significantly lower than global)
+- UGC (no posting): ₹2,000–₹8,000 per deliverable; scalable to ₹20,000+/month
+- Digital products (courses, presets): ₹499–₹4,999 one-time; ₹5,000–₹50,000/month at scale
+- Memberships (Patreon/etc.): ₹99–₹499/subscriber; realistic ₹3,000–₹20,000/month for micro creators
+
+Always respond in valid JSON only — no markdown, no explanation outside the JSON.`
 
     const userPrompt = `Analyze the monetization gaps for this creator:
 
