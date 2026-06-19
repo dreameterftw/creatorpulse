@@ -12,7 +12,7 @@ const STEPS = [
   { id: "money",   title: "Current earnings",        sub: "Income streams and monthly revenue" },
 ]
 
-const PLATFORMS   = ["Instagram", "YouTube", "LinkedIn", "Twitter/X", "TikTok"]
+const PLATFORMS   = ["Instagram", "YouTube", "LinkedIn", "Twitter/X"]
 const NICHES      = ["Fitness", "Tech", "Finance", "Fashion", "Food", "Travel", "Education", "Gaming", "Lifestyle", "Beauty"]
 const FREQUENCIES = ["Daily", "3-4x per week", "1-2x per week", "A few times a month"]
 const LOCATIONS   = ["India", "USA", "UK", "UAE", "Global Mix"]

@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import PlatformMarquee from "../components/PlatformMarquee"
-import { ArrowRight, DollarSign, Radar, Target, Mail, Sparkles, TrendingUp, Shield, Layers, Plus, Check } from "lucide-react"
+import { ArrowRight, DollarSign, Radar, Target, Mail, Sparkles, TrendingUp, Shield, Layers, Plus, Check, Zap } from "lucide-react"
 
 export default function Landing() {
   const navigate = useNavigate()
@@ -79,8 +79,8 @@ export default function Landing() {
             <div className="flex flex-wrap gap-8 items-center opacity-65">
               <span className="text-white font-display font-bold text-lg tracking-tight">Instagram</span>
               <span className="text-white font-display font-bold text-lg tracking-tight">YouTube</span>
-              <span className="text-white font-display font-bold text-lg tracking-tight">TikTok</span>
               <span className="text-white font-display font-bold text-lg tracking-tight">Twitter/X</span>
+              <span className="text-white font-display font-bold text-lg tracking-tight">LinkedIn</span>
             </div>
           </div>
         </div>
@@ -353,7 +353,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── 5. Stats & Pricing Section ── */}
+      {/* ── 5. Stats Section ── */}
       <section className="bg-white py-24 px-6 text-[#0a0916] border-t border-black/5">
         <div className="max-w-6xl mx-auto text-center">
           <span className="text-[11px] font-mono font-semibold tracking-wider text-[#ef2cc1] uppercase">OUR IMPACT</span>
@@ -361,8 +361,6 @@ export default function Landing() {
             We’ve helped thousands of creators grow.
           </h2>
 
-          {/* Metrics */}
-          {/* Real values */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <p className="text-5xl font-display font-extrabold text-[#0a0916]">Free</p>
@@ -380,7 +378,122 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── 6. Large CTA Card Section ── */}
+      {/* ── 6. Pricing Section ── */}
+      <section id="pricing" className="bg-[#0a0916] py-24 px-6 text-white border-t border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-[11px] font-mono tracking-widest text-[#00f2fe] uppercase">PRICING</span>
+            <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight mt-2">
+              Simple, honest pricing.
+            </h2>
+            <p className="text-[15px] text-[#8a89a0] mt-4 max-w-xl mx-auto leading-relaxed">
+              The entire stack runs on free-tier infrastructure. Zero fixed server costs at launch.
+              We’re freemium — and we’re proud of it.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
+            {/* Free Tier */}
+            <div className="rounded-2xl p-8 flex flex-col gap-6 relative overflow-hidden"
+              style={{ background: "#111026", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div>
+                <span className="text-[11px] font-mono tracking-widest uppercase text-[#8a89a0]">FREE FOREVER</span>
+                <div className="flex items-end gap-2 mt-2">
+                  <span className="text-5xl font-display font-extrabold text-white">₹0</span>
+                  <span className="text-[#8a89a0] text-sm mb-2">/ month</span>
+                </div>
+                <p className="text-[13px] text-[#8a89a0] mt-3 leading-relaxed">
+                  Full access to all five AI tools — enough to show you exactly what you’re missing before we ask for anything.
+                </p>
+              </div>
+              <ul className="space-y-3 flex-1">
+                {[
+                  "Rate Calculator — AI-justified sponsor rates",
+                  "Pitch Generator — personalized outbound drafts",
+                  "Brand Fit Score — multi-dimension audience match",
+                  "What-If Simulator — model growth & income",
+                  "Gap Analyzer — identify missing revenue streams",
+                  "10 AI calls per day",
+                ].map((feat) => (
+                  <li key={feat} className="flex items-start gap-3 text-[13px] text-[#8a89a0]">
+                    <Check size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#00f2fe" }} />
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => navigate("/auth")}
+                className="w-full py-3 rounded-xl text-[13px] font-semibold transition-all"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "white" }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = "rgba(0,242,254,0.4)"}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"}
+              >
+                Get Started Free
+              </button>
+            </div>
+
+            {/* Pro Tier */}
+            <div className="rounded-2xl p-8 flex flex-col gap-6 relative overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, #141332 0%, #1a1040 100%)",
+                border: "1px solid rgba(239,44,193,0.35)",
+                boxShadow: "0 0 40px rgba(239,44,193,0.08)",
+              }}>
+              {/* Popular badge */}
+              <div className="absolute top-5 right-5">
+                <span className="text-[10px] font-mono font-semibold tracking-widest uppercase px-2.5 py-1 rounded-full"
+                  style={{ background: "rgba(239,44,193,0.15)", color: "#ef2cc1", border: "1px solid rgba(239,44,193,0.3)" }}>
+                  MOST VALUE
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[11px] font-mono tracking-widest uppercase" style={{ color: "#ef2cc1" }}>PRO</span>
+                <div className="flex items-end gap-2 mt-2">
+                  <span className="text-5xl font-display font-extrabold text-white">₹399</span>
+                  <span className="text-[#8a89a0] text-sm mb-2">/ month</span>
+                </div>
+                <p className="text-[13px] text-[#8a89a0] mt-3 leading-relaxed">
+                  Less than what a creator loses on a single underpriced deal. Unlocks unlimited calls, media kits, and brand CRM.
+                </p>
+              </div>
+              <ul className="space-y-3 flex-1">
+                {[
+                  "Everything in Free",
+                  "Unlimited AI calls per day",
+                  "PDF media kit downloads",
+                  "Brand outreach CRM",
+                  "Priority AI responses",
+                  "Early access to new tools",
+                ].map((feat, i) => (
+                  <li key={feat} className="flex items-start gap-3 text-[13px] text-white">
+                    <Check size={14} className="flex-shrink-0 mt-0.5" style={{ color: i === 0 ? "#8a89a0" : "#ef2cc1" }} />
+                    <span style={{ color: i === 0 ? "#8a89a0" : "white" }}>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => navigate("/auth")}
+                className="cta-glow-button w-full py-3 text-[13px] font-semibold"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <Zap size={14} />
+                  Upgrade to Pro
+                </span>
+                <div className="hoverEffect" aria-hidden="true"><div /></div>
+              </button>
+            </div>
+          </div>
+
+          {/* Footnote */}
+          <p className="text-center text-[12px] text-[#8a89a0]/50 mt-10 font-mono">
+            No contracts. Cancel anytime. Prices in INR, built for the Indian creator market.
+          </p>
+        </div>
+      </section>
+
+      {/* ── 7. Large CTA Card Section ── */}
       <section className="bg-[#0a0916] py-24 px-6 text-white border-t border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="card p-10 md:p-14 rounded-2xl bg-gradient-to-br from-[#111026] via-[#111026] to-[#ef2cc1]/15 border border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl">

@@ -18,7 +18,6 @@ import {
 const PLATFORMS = [
   { value: "instagram", label: "Instagram",  accent: "#ef2cc1" },
   { value: "youtube",   label: "YouTube",    accent: "#fc4c02" },
-  { value: "tiktok",    label: "TikTok",     accent: "#00f2fe" },
   { value: "twitter",   label: "Twitter / X", accent: "#8a89a0" },
 ]
 

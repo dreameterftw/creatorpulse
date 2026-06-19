@@ -9,7 +9,7 @@ import {
 } from "recharts"
 import { TrendingUp, TrendingDown, Minus, Plus, Sparkles, ChevronDown } from "lucide-react"
 
-const PLATFORMS = ["Instagram", "YouTube", "TikTok", "Twitter/X", "LinkedIn"]
+const PLATFORMS = ["Instagram", "YouTube", "Twitter/X", "LinkedIn"]
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null

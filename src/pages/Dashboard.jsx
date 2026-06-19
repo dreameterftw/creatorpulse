@@ -590,7 +590,7 @@ function ProfileRow({ label, value, accent }) {
 }
 
 // ─── Edit Profile Panel ──────────────────────────────────────
-const EP_PLATFORMS   = ["Instagram", "YouTube", "LinkedIn", "Twitter/X", "TikTok"]
+const EP_PLATFORMS   = ["Instagram", "YouTube", "LinkedIn", "Twitter/X"]
 const EP_NICHES      = ["Fitness", "Tech", "Finance", "Fashion", "Food", "Travel", "Education", "Gaming", "Lifestyle", "Beauty"]
 const EP_FREQUENCIES = ["Daily", "3-4x per week", "1-2x per week", "A few times a month"]
 const EP_LOCATIONS   = ["India", "USA", "UK", "UAE", "Global Mix"]
@@ -1076,6 +1076,52 @@ export default function Dashboard() {
                 <ProfileRow label="Location"    value={profile?.audienceLocation}                                      accent="#8a89a0" />
               </>
             )}
+          </div>
+
+          {/* Pricing Value Card */}
+          <div className="rounded-xl p-5 relative overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, #111026 0%, #141332 100%)",
+              border: "1px solid rgba(239,44,193,0.2)",
+            }}>
+            {/* Glow */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at 100% 0%, rgba(239,44,193,0.06) 0%, transparent 65%)" }} />
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-mono font-semibold tracking-widest uppercase text-[#8a89a0]">Why ₹399/mo?</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(239,44,193,0.12)", color: "#ef2cc1", border: "1px solid rgba(239,44,193,0.25)" }}>
+                  PRO
+                </span>
+              </div>
+
+              <p className="text-[12px] text-[#8a89a0] leading-relaxed mb-4">
+                The average Indian creator underprices a brand deal by <span className="text-white font-semibold">₹4,000–₹8,000</span> per post.
+                One better-negotiated deal pays for a year of Pro.
+              </p>
+
+              {/* Comparison rows */}
+              <div className="space-y-2.5">
+                {[
+                  { label: "One underpriced reel", value: "−₹5,000", color: "#fc4c02" },
+                  { label: "Avg. Indian SaaS tool", value: "₹800–₹2,000/mo", color: "#8a89a0" },
+                  { label: "CreatorPulse Pro", value: "₹399/mo", color: "#ef2cc1" },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="flex items-center justify-between py-1.5"
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span className="text-[11px] text-[#8a89a0]">{label}</span>
+                    <span className="text-[12px] font-mono font-semibold" style={{ color }}>{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-[11px] text-[#8a89a0]/60 mt-4 leading-relaxed">
+                Built on zero fixed infra costs — we pass those savings directly to Indian creators.
+                No VC pricing. No USD conversion markup.
+              </p>
+            </div>
           </div>
         </div>
       </div>

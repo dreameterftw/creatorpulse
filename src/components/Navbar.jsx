@@ -45,9 +45,23 @@ export default function Navbar() {
 
         {!user && (
           <div className="hidden md:flex items-center gap-6 ml-6">
-            {["Products", "Resources", "Pricing"].map((item) => (
+            {["Products", "Resources"].map((item) => (
               <span key={item} className="nav-gradient-text text-[13px] font-medium cursor-pointer">{item}</span>
             ))}
+            <a
+              href="/#pricing"
+              onClick={(e) => {
+                // If already on the landing page, smooth-scroll instead of navigating
+                const el = document.getElementById("pricing")
+                if (el) {
+                  e.preventDefault()
+                  el.scrollIntoView({ behavior: "smooth" })
+                }
+              }}
+              className="nav-gradient-text text-[13px] font-medium cursor-pointer no-underline"
+            >
+              Pricing
+            </a>
           </div>
         )}
       </div>
