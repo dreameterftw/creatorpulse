@@ -358,7 +358,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto text-center">
           <span className="text-[11px] font-mono font-semibold tracking-wider text-[#ef2cc1] uppercase">OUR IMPACT</span>
           <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight mt-3 mb-16">
-            We’ve helped thousands of creators grow.
+            The tools we wish we had starting out.
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
